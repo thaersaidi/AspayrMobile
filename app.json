@@ -1,4 +1,28 @@
 {
-  "name": "AspayrMobile",
-  "displayName": "AspayrMobile"
+  "expo": {
+    "name": "Aspayr Mobile",
+    "slug": "aspayr-mobile",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#8B5CF6",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aspayr.mobile"
+    },
+    "android": {
+      "package": "com.aspayr.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#8B5CF6"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "aspayr",
+    "plugins": []
+  }
 }

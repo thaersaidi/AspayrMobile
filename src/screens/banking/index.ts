@@ -1,0 +1,1 @@
+export { LinkBankScreen } from './LinkBankScreen';
