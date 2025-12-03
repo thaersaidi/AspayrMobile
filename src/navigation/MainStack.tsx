@@ -6,6 +6,7 @@ import { MainStackParamList } from '../types/navigation';
 import { BottomTabNavigator } from './BottomTabNavigator';
 import { OnboardingQuizScreen, GuidedTourScreen } from '../screens/onboarding';
 import { LinkBankScreen } from '../screens/banking';
+import { ChatScreen } from '../screens/chat';
 
 // Placeholder for modal screens that are not yet implemented
 const PlaceholderModal = ({ route }: any) => {
@@ -69,8 +70,8 @@ export const MainStack = () => {
         />
         <Stack.Screen
           name="Chat"
-          component={PlaceholderModal}
-          options={{ title: 'AI Assistant' }}
+          component={ChatScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="OnboardingQuiz"

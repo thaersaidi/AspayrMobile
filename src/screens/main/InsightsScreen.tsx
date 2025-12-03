@@ -76,6 +76,7 @@ import { SpendingScreen } from '../insights/SpendingScreen';
 import { BudgetsScreen } from '../insights/BudgetsScreen';
 import { RecurringScreen } from '../insights/RecurringScreen';
 import { GoalsScreen } from '../insights/GoalsScreen';
+import { ChartsScreen } from '../insights/ChartsScreen';
 
 type Props = NativeStackScreenProps<BottomTabParamList, 'Insights'>;
 
@@ -92,10 +93,11 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [activeScreen, setActiveScreen] = useState<
-    'spending' | 'budgets' | 'recurring' | 'goals'
+    'spending' | 'budgets' | 'recurring' | 'goals' | 'charts'
   >('spending');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('last3Months');
   const [timeFilterMenuVisible, setTimeFilterMenuVisible] = useState(false);
@@ -115,6 +117,10 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
         const transactionsData = await storageApi.getTransactions(user.userUuid);
         const enrichedTransactions = (transactionsData || []).map(enrichTransaction);
         setTransactions(enrichedTransactions);
+
+        // Load accounts for charts
+        const accountsData = await storageApi.getAccounts(user.userUuid);
+        setAccounts(accountsData || []);
 
         // Load budgets
         const budgetsData = await storageApi.getBudgets(user.userUuid);
@@ -244,7 +250,7 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
           variant="bodySmall"
           style={[styles.headerSubtitle, { color: theme.colors.onSurfaceVariant }]}
         >
-          Track spending, budgets, recurring expenses, and goals
+          Track spending, budgets, recurring expenses, goals, and visual charts
         </Text>
       </Surface>
 
@@ -311,6 +317,13 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
               onPress={() => setActiveScreen('goals')}
               theme={theme}
             />
+            <TabButton
+              icon="chart-bar"
+              label="Charts"
+              active={activeScreen === 'charts'}
+              onPress={() => setActiveScreen('charts')}
+              theme={theme}
+            />
           </View>
         </ScrollView>
       </View>
@@ -347,6 +360,10 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
             onSaveGoal={handleSaveGoal}
             onDeleteGoal={handleDeleteGoal}
           />
+        )}
+
+        {activeScreen === 'charts' && (
+          <ChartsScreen accounts={accounts} transactions={filteredTransactions} />
         )}
       </View>
     </View>

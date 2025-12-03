@@ -268,8 +268,10 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
     return <Loading message="Loading accounts..." />;
   }
 
+  const styles = createStyles(theme);
+
   return (
-    <View style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
+    <View style={styles.container}>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -283,7 +285,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.addBankButton}
             onPress={() => (navigation as any).getParent()?.navigate('LinkBank')}
           >
-            <Icon name="plus" size={20} color="#8B5CF6" />
+            <Icon name="plus" size={20} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -344,10 +346,10 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
                         onPress={() => handleAccountRowPress(account.id)}
                       >
                       <View style={styles.accountIcon}>
-                        <Icon 
-                          name={account.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'} 
-                          size={18} 
-                          color="#6B7280" 
+                        <Icon
+                          name={account.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'}
+                          size={18}
+                          color={theme.colors.onSurfaceVariant}
                         />
                       </View>
                       <View style={styles.accountInfo}>
@@ -369,7 +371,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         ) : (
           <View style={styles.noBanksContainer}>
-            <Icon name="bank-off" size={48} color="#9CA3AF" />
+            <Icon name="bank-off" size={48} color={theme.colors.onSurfaceVariant} />
             <Text style={styles.noBanksTitle}>No Banks Connected</Text>
             <Text style={styles.noBanksText}>Link a bank account to see your accounts and transactions</Text>
             <TouchableOpacity
@@ -408,7 +410,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
                 value={searchQuery}
                 style={styles.searchBar}
                 inputStyle={styles.searchInput}
-                iconColor="#6B7280"
+                iconColor={theme.colors.onSurfaceVariant}
               />
             </View>
 
@@ -492,9 +494,10 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   scrollContent: {
     paddingBottom: 100,
@@ -510,13 +513,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
   },
   addBankButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#8B5CF620',
+    backgroundColor: theme.colors.primaryContainer,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -525,28 +528,28 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     padding: 20,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     marginBottom: 4,
   },
   balanceAmount: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#8B5CF6',
+    color: theme.colors.primary,
     marginBottom: 4,
   },
   accountCountText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 12,
   },
   banksSection: {
@@ -554,7 +557,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   bankCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -564,7 +567,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: theme.colors.surfaceVariant,
   },
   bankLogo: {
     width: 44,
@@ -575,20 +578,20 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 10,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
   },
   bankLogoPlaceholder: {
     width: 44,
     height: 44,
     borderRadius: 10,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
   },
   bankLogoInitials: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   bankInfo: {
     flex: 1,
@@ -596,27 +599,27 @@ const styles = StyleSheet.create({
   bankName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
   },
   bankMeta: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     marginTop: 2,
   },
   bankBalance: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#8B5CF6',
+    color: theme.colors.primary,
   },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F9FAFB',
+    borderBottomColor: theme.colors.surfaceVariant,
   },
   accountRowSelected: {
-    backgroundColor: '#F3F4FF',
+    backgroundColor: theme.colors.primaryContainer,
     borderRadius: 12,
     paddingHorizontal: 8,
   },
@@ -624,7 +627,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -635,22 +638,22 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
   },
   accountNumber: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: theme.colors.onSurfaceVariant,
     marginTop: 1,
   },
   accountTxCount: {
     fontSize: 11,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     marginTop: 2,
   },
   accountBalance: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: theme.colors.onSurface,
   },
   noBanksContainer: {
     alignItems: 'center',
@@ -660,12 +663,12 @@ const styles = StyleSheet.create({
   noBanksTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginTop: 16,
   },
   noBanksText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
@@ -678,13 +681,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   segmentedButtons: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.colors.surfaceVariant,
   },
   searchContainer: {
     paddingVertical: 8,
   },
   searchBar: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     elevation: 0,
   },
@@ -694,7 +697,7 @@ const styles = StyleSheet.create({
   transactionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     padding: 14,
     borderRadius: 12,
     marginBottom: 8,
@@ -716,12 +719,12 @@ const styles = StyleSheet.create({
   txDescription: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 2,
   },
   txDate: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   txAmount: {
     fontSize: 16,
@@ -733,13 +736,13 @@ const styles = StyleSheet.create({
   },
   noTransactionsText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: theme.colors.onSurfaceVariant,
   },
   activeFilterChip: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#EEF2FF',
+    backgroundColor: theme.colors.primaryContainer,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -748,29 +751,29 @@ const styles = StyleSheet.create({
   activeFilterText: {
     flex: 1,
     fontSize: 13,
-    color: '#4338CA',
+    color: theme.colors.onPrimaryContainer,
     marginRight: 8,
   },
   clearFilterText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: theme.colors.primary,
   },
   linkButton: {
     marginTop: 24,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
   },
   linkButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   loadMoreButton: {
     marginTop: 12,
     borderRadius: 12,
-    borderColor: '#D1D5DB',
+    borderColor: theme.colors.outline,
   },
 });

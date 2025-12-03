@@ -57,6 +57,7 @@ const parseJwtForConsentId = (token: string): string | null => {
 
 export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
   const theme = useTheme();
+  const styles = createStyles(theme);
   
   // State
   const [loading, setLoading] = useState(false);
@@ -418,7 +419,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
             {supportsEmbedded ? ' • Embedded supported' : ''}
           </Text>
         </View>
-        <Icon name="chevron-right" size={24} color="#9CA3AF" />
+        <Icon name="chevron-right" size={24} color={theme.colors.onSurfaceVariant} />
       </TouchableOpacity>
     );
   };
@@ -469,7 +470,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
           style={styles.deleteButton}
           onPress={() => deleteAuthRequest(item.id)}
         >
-          <Icon name="trash-can-outline" size={20} color="#EF4444" />
+          <Icon name="trash-can-outline" size={20} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
     );
@@ -514,7 +515,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
         {authStep.step === 'success' && (
           <>
             <View style={styles.authStepHeader}>
-              <Icon name="check-circle" size={32} color="#10B981" />
+              <Icon name="check-circle" size={32} color={theme.colors.primary} />
               <Text style={styles.authStepTitleSuccess}>Success!</Text>
             </View>
             <Text style={styles.authStepMessage}>{authStep.message}</Text>
@@ -540,7 +541,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
         {authStep.step === 'error' && (
           <>
             <View style={styles.authStepHeader}>
-              <Icon name="alert-circle" size={32} color="#EF4444" />
+              <Icon name="alert-circle" size={32} color={theme.colors.error} />
               <Text style={styles.authStepTitleError}>Error</Text>
             </View>
             <Text style={styles.authStepMessage}>{authStep.message}</Text>
@@ -573,7 +574,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleClose} style={styles.backButton}>
-          <Icon name="close" size={24} color="#1F2937" />
+          <Icon name="close" size={24} color={theme.colors.onSurface} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Link Bank Account</Text>
         <View style={styles.headerSpacer} />
@@ -615,7 +616,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
               value={searchQuery}
               style={styles.searchBar}
               inputStyle={styles.searchInput}
-              iconColor="#6B7280"
+              iconColor={theme.colors.onSurfaceVariant}
             />
 
             {/* Bank List */}
@@ -630,7 +631,7 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
                 />
               ) : (
                 <View style={styles.emptyState}>
-                  <Icon name="bank-off" size={48} color="#9CA3AF" />
+                  <Icon name="bank-off" size={48} color={theme.colors.onSurfaceVariant} />
                   <Text style={styles.emptyText}>
                     {searchQuery ? 'No banks found matching your search' : 'No banks available'}
                   </Text>
@@ -671,21 +672,21 @@ export const LinkBankScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: theme.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   header: {
     flexDirection: 'row',
@@ -694,9 +695,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.colors.outlineVariant,
   },
   backButton: {
     width: 40,
@@ -707,7 +708,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
   },
   headerSpacer: {
     width: 40,
@@ -722,20 +723,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 12,
   },
   searchBar: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     marginBottom: 12,
     elevation: 0,
+    borderWidth: 1,
+    borderColor: theme.colors.outlineVariant,
   },
   searchInput: {
     fontSize: 15,
+    color: theme.colors.onSurface,
   },
   listCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -753,20 +757,20 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
   },
   logoPlaceholder: {
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoInitials: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   institutionInfo: {
     flex: 1,
@@ -774,12 +778,12 @@ const styles = StyleSheet.create({
   institutionName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 2,
   },
   institutionMeta: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   authRequestItem: {
     flexDirection: 'row',
@@ -803,13 +807,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    backgroundColor: '#10B98120',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    backgroundColor: 'transparent',
   },
   statusBadgePending: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    backgroundColor: '#F59E0B20',
+    backgroundColor: theme.colors.surfaceVariant,
   },
   statusText: {
     fontSize: 11,
@@ -818,16 +824,16 @@ const styles = StyleSheet.create({
   statusTextAuthorized: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#10B981',
+    color: theme.colors.primary,
   },
   statusTextPending: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: theme.colors.onSurfaceVariant,
   },
   expirationText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     marginTop: 4,
   },
   deleteButton: {
@@ -837,7 +843,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   authStepCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
@@ -851,21 +857,21 @@ const styles = StyleSheet.create({
   authStepTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
   },
   authStepTitleSuccess: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#10B981',
+    color: theme.colors.primary,
   },
   authStepTitleError: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#EF4444',
+    color: theme.colors.error,
   },
   authStepMessage: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -883,11 +889,11 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     textAlign: 'center',
   },
   helpSection: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
     borderRadius: 16,
     padding: 20,
     marginTop: 8,
@@ -895,7 +901,7 @@ const styles = StyleSheet.create({
   helpTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 16,
   },
   helpStep: {
@@ -907,7 +913,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -915,12 +921,12 @@ const styles = StyleSheet.create({
   helpStepNumberText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.colors.onPrimary,
   },
   helpStepText: {
     flex: 1,
     fontSize: 14,
-    color: '#4B5563',
+    color: theme.colors.onSurfaceVariant,
     lineHeight: 20,
   },
 });
