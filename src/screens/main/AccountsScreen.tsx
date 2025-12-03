@@ -167,32 +167,60 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
     return iconMedia?.source || null;
   };
 
-  // Group accounts by bank (institutionId)
+  // Group accounts by bank, supporting both institutionId and auth request id mappings
   const accountsByBank = useMemo(() => {
-    const grouped: { [key: string]: { bank: AuthRequest; institution: Institution | undefined; accounts: any[] } } = {};
-    
-    // First, create groups for each authorized bank
-    authorizedBanks.forEach(bank => {
-      grouped[bank.institutionId] = {
+    type Group = { bank: AuthRequest; institution: Institution | undefined; accounts: any[] };
+    const keyToGroup = new Map<string, Group>();
+    const groups: Group[] = [];
+
+    authorizedBanks.forEach((bank) => {
+      const group: Group = {
         bank,
         institution: getInstitution(bank.institutionId),
         accounts: [],
       };
-    });
-    
-    // Then, assign accounts to their banks
-    accounts.forEach(account => {
-      const bankId = account.institutionId || account.bankId;
-      if (bankId && grouped[bankId]) {
-        grouped[bankId].accounts.push(account);
+      groups.push(group);
+      if (bank.id) {
+        keyToGroup.set(bank.id, group);
+      }
+      if (bank.institutionId) {
+        keyToGroup.set(bank.institutionId, group);
       }
     });
-    
-    return Object.values(grouped);
+
+    accounts.forEach((account) => {
+      const bankKey = account.institutionId || account.bankId;
+      if (!bankKey) {
+        return;
+      }
+      const matchedGroup = keyToGroup.get(bankKey);
+      if (matchedGroup) {
+        matchedGroup.accounts.push(account);
+      }
+    });
+
+    return groups;
   }, [accounts, authorizedBanks, institutions]);
 
   const totalVisibleAccounts = useMemo(() => {
     return accountsByBank.reduce((sum, group) => sum + group.accounts.length, 0);
+  }, [accountsByBank]);
+
+  const accountMetaById = useMemo(() => {
+    const meta: Record<string, { bankName: string; subtitle: string }> = {};
+    accountsByBank.forEach(({ bank, institution, accounts: bankAccounts }) => {
+      const bankName = institution?.name || bank.institutionId;
+      bankAccounts.forEach((account) => {
+        if (!account?.id) {
+          return;
+        }
+        const subtitle = account.accountNumber
+          ? `•••• ${account.accountNumber.slice(-4)}`
+          : account.type || account.accountType || 'Current';
+        meta[account.id] = { bankName, subtitle };
+      });
+    });
+    return meta;
   }, [accountsByBank]);
 
   // Calculate totals
@@ -223,6 +251,10 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
     }
     return accounts.find(acc => acc.id === selectedAccountId) || null;
   }, [selectedAccountId, accounts]);
+
+  const selectedAccountMeta = selectedAccountId !== 'all'
+    ? accountMetaById[selectedAccountId] || null
+    : null;
 
   const displayedTransactions = filteredTransactions.slice(0, transactionsPage * TRANSACTIONS_PAGE_SIZE);
   const canLoadMore = displayedTransactions.length < filteredTransactions.length;
@@ -386,7 +418,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
               {selectedAccount && (
                 <View style={styles.activeFilterChip}>
                   <Text style={styles.activeFilterText} numberOfLines={1}>
-                    Showing transactions for {selectedAccount.name || selectedAccount.accountName || 'Account'}
+                    Showing transactions for {selectedAccountMeta?.bankName || 'Bank'} • {selectedAccountMeta?.subtitle || 'Account'}
                   </Text>
                   <TouchableOpacity onPress={() => setSelectedAccountId('all')}>
                     <Text style={styles.clearFilterText}>Clear filter</Text>

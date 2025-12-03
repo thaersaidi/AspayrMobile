@@ -5,6 +5,7 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { Text, useTheme, FAB, Surface } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,7 +13,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomTabParamList } from '../../types/navigation';
 import { Loading } from '../../components/common/Loading';
 import { userStorage } from '../../utils/storage';
-import { storageApi } from '../../api';
+import { storageApi, bankingApi } from '../../api';
+import { AuthRequest, Institution } from '../../types/banking';
 import { formatCurrency } from '../../utils/formatters';
 
 type Props = NativeStackScreenProps<BottomTabParamList, 'Dashboard'>;
@@ -24,6 +26,18 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const [user, setUser] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [authorizedBanks, setAuthorizedBanks] = useState<AuthRequest[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [banksOverview, setBanksOverview] = useState<
+    {
+      id: string;
+      institutionId: string;
+      name: string;
+      accountCount: number;
+      balance: number;
+      logoUrl: string | null;
+    }
+  >([]);
   const [showOnboardingBanner, setShowOnboardingBanner] = useState(false);
 
   useEffect(() => {
@@ -49,14 +63,67 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       setUser(userData);
 
       if (userData?.userUuid) {
-        const accountsData = await storageApi.getAccounts(userData.userUuid);
-        setAccounts(accountsData || []);
+        const [accountsData, authRequestsData, institutionsData] = await Promise.all([
+          storageApi.getAccounts(userData.userUuid),
+          bankingApi.getAuthRequests(userData.userUuid).catch(() => ({ data: [] })),
+          bankingApi.getInstitutions().catch(() => ({ institutions: [] })),
+        ]);
+
+        const authRequests = authRequestsData?.data || authRequestsData || [];
+        const authorizedBanks = Array.isArray(authRequests)
+          ? authRequests.filter((req: any) => req.status === 'AUTHORIZED')
+          : [];
+        const authorizedBankIds = new Set(
+          authorizedBanks.map((bank: any) => bank.institutionId).filter(Boolean)
+        );
+
+        setAuthorizedBanks(authorizedBanks);
+        const institutionsList = institutionsData?.institutions || [];
+        setInstitutions(institutionsList);
+
+        const visibleAccounts = (accountsData || []).filter((account: any) => {
+          const bankId = account.institutionId || account.bankId;
+          return bankId ? authorizedBankIds.has(bankId) : false;
+        });
+        setAccounts(visibleAccounts);
 
         // Calculate total balance (simplified)
-        const total = accountsData?.reduce((sum: number, acc: any) => {
+        const total = visibleAccounts.reduce((sum: number, acc: any) => {
           return sum + (acc.balance || 0);
-        }, 0) || 0;
+        }, 0);
         setTotalBalance(total);
+
+        const groupedByBank = new Map<string, { balance: number; accountCount: number }>();
+        visibleAccounts.forEach((account: any) => {
+          const bankId = account.institutionId || account.bankId;
+          if (!bankId) return;
+          const entry = groupedByBank.get(bankId) || { balance: 0, accountCount: 0 };
+          entry.balance += account.balance || 0;
+          entry.accountCount += 1;
+          groupedByBank.set(bankId, entry);
+        });
+
+        const overview = authorizedBanks.map((bank: AuthRequest) => {
+          const bankId = bank.institutionId;
+          const aggregates = bankId ? groupedByBank.get(bankId) : undefined;
+          const institution = institutionsList.find((inst: Institution) => inst.id === bankId);
+          const logoUrl = (() => {
+            if (!institution?.media) return null;
+            const mediaItem = institution.media.find(
+              (media) => media.type === 'icon' || media.type === 'logo'
+            );
+            return mediaItem?.source || null;
+          })();
+          return {
+            id: bank.id,
+            institutionId: bankId,
+            name: institution?.name || bank.institutionId || 'Bank',
+            accountCount: aggregates?.accountCount || 0,
+            balance: aggregates?.balance || 0,
+            logoUrl,
+          };
+        });
+        setBanksOverview(overview);
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -155,18 +222,18 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         {/* Recent Accounts */}
-        {accounts.length > 0 && (
+        {banksOverview.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Your Accounts</Text>
+              <Text style={styles.sectionTitle}>Connected Banks</Text>
               <TouchableOpacity onPress={() => navigation.navigate('Accounts')}>
                 <Text style={styles.seeAll}>See All</Text>
               </TouchableOpacity>
             </View>
 
-            {accounts.slice(0, 3).map((account, index) => (
+            {banksOverview.slice(0, 3).map((bank) => (
               <Surface
-                key={index}
+                key={bank.id}
                 style={styles.accountCard}
                 elevation={0}
               >
@@ -175,18 +242,26 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
                   onPress={() => navigation.navigate('Accounts')}
                 >
                   <View style={styles.accountIconContainer}>
-                    <Text style={styles.accountEmoji}>🏦</Text>
+                    {bank.logoUrl ? (
+                      <Image
+                        source={{ uri: bank.logoUrl }}
+                        style={styles.bankLogoImage}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Text style={styles.accountEmoji}>🏦</Text>
+                    )}
                   </View>
                   <View style={styles.accountDetails}>
                     <Text style={styles.accountName}>
-                      {account.institutionName || 'Bank Account'}
+                      {bank.name}
                     </Text>
                     <Text style={styles.accountType}>
-                      {account.accountType || account.type || 'Account'}
+                      {bank.accountCount} {bank.accountCount === 1 ? 'account' : 'accounts'}
                     </Text>
                   </View>
                   <Text style={styles.accountBalance}>
-                    {formatCurrency(account.balance || 0, account.currency || 'EUR')}
+                    {formatCurrency(bank.balance || 0)}
                   </Text>
                 </TouchableOpacity>
               </Surface>
@@ -195,7 +270,7 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
         )}
 
         {/* Empty State */}
-        {accounts.length === 0 && (
+        {banksOverview.length === 0 && (
           <Surface style={styles.emptyCard} elevation={0}>
             <View style={styles.emptyIconContainer}>
               <Text style={styles.emptyEmoji}>🏦</Text>
@@ -402,6 +477,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  bankLogoImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
   },
   accountEmoji: {
     fontSize: 22,
