@@ -3,8 +3,8 @@
  * Banking & AI Financial Assistant
  */
 
-import React, { useEffect, useState } from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import React from 'react';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -16,9 +16,7 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 // Theme
 import { lightTheme } from './src/theme/lightTheme';
 import { darkTheme } from './src/theme/darkTheme';
-
-// Storage
-import { userStorage } from './src/utils/storage';
+import { ThemeProvider, useThemeContext } from './src/contexts/ThemeContext';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -30,38 +28,29 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  const systemColorScheme = useColorScheme();
-  const [theme, setTheme] = useState<'light' | 'dark'>(
-    systemColorScheme === 'dark' ? 'dark' : 'light'
-  );
-
-  useEffect(() => {
-    loadThemePreference();
-  }, []);
-
-  const loadThemePreference = async () => {
-    const savedTheme = await userStorage.getTheme();
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (systemColorScheme) {
-      setTheme(systemColorScheme);
-    }
-  };
-
+function AppContent() {
+  const { theme } = useThemeContext();
   const selectedTheme = theme === 'dark' ? darkTheme : lightTheme;
 
+  return (
+    <PaperProvider theme={selectedTheme}>
+      <StatusBar
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={selectedTheme.colors.background}
+      />
+      <AppNavigator />
+    </PaperProvider>
+  );
+}
+
+function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <PaperProvider theme={selectedTheme}>
-            <StatusBar
-              barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
-              backgroundColor={selectedTheme.colors.background}
-            />
-            <AppNavigator />
-          </PaperProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

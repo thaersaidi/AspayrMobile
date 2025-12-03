@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
-import { Text, Button, Surface, IconButton, useTheme, ProgressBar } from 'react-native-paper';
+import { Text, Button, IconButton, useTheme, ProgressBar } from 'react-native-paper';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -189,134 +189,8 @@ const GuidedTourScreen: React.FC<Props> = ({ navigation }) => {
   if (currentTourStep.type === 'intro') {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Surface style={styles.card} elevation={4}>
-          {/* Title Bar */}
-          <View style={[styles.titleBar, { borderBottomColor: theme.colors.outlineVariant }]}>
-            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-              Aspayr Tour
-            </Text>
-            <Button mode="text" compact onPress={handleSkip}>
-              Skip
-            </Button>
-          </View>
-
-          {/* Content */}
-          <View style={styles.introContent}>
-            <View style={[styles.emojiContainerLarge, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Text style={styles.emojiLarge}>{currentTourStep.emoji}</Text>
-            </View>
-
-            <Text variant="headlineMedium" style={[styles.introTitle, { color: theme.colors.onSurface }]}>
-              {currentTourStep.title}
-            </Text>
-            <Text variant="titleMedium" style={[styles.introSubtitle, { color: theme.colors.primary }]}>
-              {currentTourStep.subtitle}
-            </Text>
-            <Text variant="bodyMedium" style={[styles.introDescription, { color: theme.colors.onSurfaceVariant }]}>
-              {currentTourStep.description}
-            </Text>
-          </View>
-
-          {/* Actions */}
-          <View style={styles.introActions}>
-            <Button
-              mode="contained"
-              onPress={handleNext}
-              style={styles.primaryButton}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.buttonLabel}
-            >
-              {currentTourStep.actions?.[0].label}
-            </Button>
-            <Button
-              mode="text"
-              onPress={handleSkip}
-              style={styles.skipButton}
-            >
-              {currentTourStep.actions?.[1].label}
-            </Button>
-          </View>
-
-          {/* Progress indicator */}
-          <View style={styles.progressDots}>
-            {[...Array(3)].map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.progressDot,
-                  i === 0
-                    ? { width: 32, backgroundColor: theme.colors.primary }
-                    : { width: 6, backgroundColor: theme.colors.outlineVariant },
-                ]}
-              />
-            ))}
-          </View>
-        </Surface>
-      </View>
-    );
-  }
-
-  // Complete screen
-  if (currentTourStep.type === 'complete') {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <Surface style={styles.card} elevation={4}>
-          {/* Title Bar */}
-          <View style={[styles.titleBar, { borderBottomColor: theme.colors.outlineVariant }]}>
-            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-              Aspayr Tour
-            </Text>
-            <View style={{ width: 48 }} />
-          </View>
-
-          {/* Content */}
-          <View style={styles.completeContent}>
-            <View style={[styles.completeEmojiContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-              <Text style={styles.completeEmoji}>{currentTourStep.emoji}</Text>
-            </View>
-
-            <Text variant="headlineSmall" style={[styles.completeTitle, { color: theme.colors.onSurface }]}>
-              {currentTourStep.title}
-            </Text>
-            <Text
-              variant="bodyMedium"
-              style={[styles.completeDescription, { color: theme.colors.onSurfaceVariant }]}
-            >
-              {currentTourStep.description}
-            </Text>
-
-            <Button
-              mode="contained"
-              onPress={handleComplete}
-              style={styles.completeButton}
-              contentStyle={styles.buttonContent}
-              labelStyle={styles.buttonLabel}
-            >
-              {currentTourStep.action}
-            </Button>
-          </View>
-
-          {/* Full progress bar */}
-          <View style={styles.fullProgressContainer}>
-            <View style={[styles.fullProgressBar, { backgroundColor: theme.colors.primary }]} />
-          </View>
-        </Surface>
-      </View>
-    );
-  }
-
-  // Feature screens
-  return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Surface style={styles.featureCard} elevation={4}>
         {/* Title Bar */}
         <View style={[styles.titleBar, { borderBottomColor: theme.colors.outlineVariant }]}>
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={handleBack}
-            iconColor={theme.colors.primary}
-          />
           <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
             Aspayr Tour
           </Text>
@@ -325,104 +199,224 @@ const GuidedTourScreen: React.FC<Props> = ({ navigation }) => {
           </Button>
         </View>
 
-        {/* Scrollable Content */}
-        <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollContentContainer}>
-          {/* Progress */}
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
-              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-                Step {currentStep} of {totalFeatureSteps}
-              </Text>
-              <Text variant="labelMedium" style={{ color: theme.colors.primary }}>
-                {currentTourStep.progress}%
-              </Text>
-            </View>
-            <ProgressBar
-              progress={(currentTourStep.progress || 0) / 100}
-              color={theme.colors.primary}
-              style={styles.progressBar}
-            />
+        {/* Content */}
+        <View style={styles.introContent}>
+          <View style={[styles.emojiContainerLarge, { backgroundColor: theme.colors.primaryContainer }]}>
+            <Text style={styles.emojiLarge}>{currentTourStep.emoji}</Text>
           </View>
 
-          {/* Feature Content */}
-          <View style={styles.featureHeader}>
-            <Text style={styles.featureEmoji}>{currentTourStep.emoji}</Text>
-            <View style={styles.featureHeaderText}>
-              <Text variant="titleLarge" style={[styles.featureTitle, { color: theme.colors.onSurface }]}>
-                {currentTourStep.title}
-              </Text>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                {currentTourStep.description}
-              </Text>
-              <View style={[styles.locationBadge, { backgroundColor: theme.colors.primaryContainer }]}>
-                <Text style={styles.locationIcon}>📍</Text>
-                <Text variant="labelSmall" style={{ color: theme.colors.primary }}>
-                  {currentTourStep.location}
-                </Text>
-              </View>
-            </View>
-          </View>
+          <Text variant="headlineMedium" style={[styles.introTitle, { color: theme.colors.onSurface }]}>
+            {currentTourStep.title}
+          </Text>
+          <Text variant="titleMedium" style={[styles.introSubtitle, { color: theme.colors.primary }]}>
+            {currentTourStep.subtitle}
+          </Text>
+          <Text variant="bodyMedium" style={[styles.introDescription, { color: theme.colors.onSurfaceVariant }]}>
+            {currentTourStep.description}
+          </Text>
+        </View>
 
-          {/* Features List */}
-          <Surface style={[styles.featuresContainer, { backgroundColor: theme.colors.surfaceVariant }]} elevation={0}>
-            <Text variant="titleSmall" style={[styles.featuresTitle, { color: theme.colors.onSurface }]}>
-              Key Features:
-            </Text>
-            {currentTourStep.features?.map((feature, idx) => (
-              <View key={idx} style={styles.featureItem}>
-                <Text style={{ color: theme.colors.primary }}>✓</Text>
-                <Text variant="bodySmall" style={[styles.featureText, { color: theme.colors.onSurfaceVariant }]}>
-                  {feature}
-                </Text>
-              </View>
-            ))}
-          </Surface>
-
-          {/* Tip */}
-          <View style={[styles.tipContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-            <View style={[styles.tipBorder, { backgroundColor: theme.colors.primary }]} />
-            <View style={styles.tipContent}>
-              <Text style={styles.tipIcon}>💡</Text>
-              <View style={styles.tipTextContainer}>
-                <Text variant="labelSmall" style={[styles.tipLabel, { color: theme.colors.primary }]}>
-                  Pro Tip
-                </Text>
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-                  {currentTourStep.tip}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </ScrollView>
-
-        {/* Navigation - Fixed at bottom */}
-        <View style={[styles.navigationContainer, { borderTopColor: theme.colors.outlineVariant }]}>
+        {/* Actions */}
+        <View style={styles.introActions}>
           <Button
             mode="contained"
             onPress={handleNext}
-            style={styles.nextButton}
+            style={styles.primaryButton}
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
           >
-            Next →
+            {currentTourStep.actions?.[0].label}
           </Button>
+          <Button
+            mode="text"
+            onPress={handleSkip}
+            style={styles.skipButton}
+          >
+            {currentTourStep.actions?.[1].label}
+          </Button>
+        </View>
 
-          {/* Progress dots */}
-          <View style={styles.progressDots}>
-            {[...Array(totalFeatureSteps)].map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.progressDot,
-                  i < currentStep
-                    ? { width: 32, backgroundColor: theme.colors.primary }
-                    : { width: 6, backgroundColor: theme.colors.outlineVariant },
-                ]}
-              />
-            ))}
+        {/* Progress indicator */}
+        <View style={styles.progressDots}>
+          {[...Array(3)].map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.progressDot,
+                i === 0
+                  ? { width: 32, backgroundColor: theme.colors.primary }
+                  : { width: 6, backgroundColor: theme.colors.outlineVariant },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    );
+  }
+
+  // Complete screen
+  if (currentTourStep.type === 'complete') {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        {/* Title Bar */}
+        <View style={[styles.titleBar, { borderBottomColor: theme.colors.outlineVariant }]}>
+          <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+            Aspayr Tour
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
+
+        {/* Content */}
+        <View style={styles.completeContent}>
+          <View style={[styles.completeEmojiContainer, { backgroundColor: theme.colors.primaryContainer }]}>
+            <Text style={styles.completeEmoji}>{currentTourStep.emoji}</Text>
+          </View>
+
+          <Text variant="headlineSmall" style={[styles.completeTitle, { color: theme.colors.onSurface }]}>
+            {currentTourStep.title}
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={[styles.completeDescription, { color: theme.colors.onSurfaceVariant }]}
+          >
+            {currentTourStep.description}
+          </Text>
+
+          <Button
+            mode="contained"
+            onPress={handleComplete}
+            style={styles.completeButton}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.buttonLabel}
+          >
+            {currentTourStep.action}
+          </Button>
+        </View>
+
+        {/* Full progress bar */}
+        <View style={styles.fullProgressContainer}>
+          <View style={[styles.fullProgressBar, { backgroundColor: theme.colors.primary }]} />
+        </View>
+      </View>
+    );
+  }
+
+  // Feature screens
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Title Bar */}
+      <View style={[styles.titleBar, { borderBottomColor: theme.colors.outlineVariant }]}>
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          onPress={handleBack}
+          iconColor={theme.colors.primary}
+        />
+        <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+          Aspayr Tour
+        </Text>
+        <Button mode="text" compact onPress={handleSkip}>
+          Skip
+        </Button>
+      </View>
+
+      {/* Scrollable Content */}
+      <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollContentContainer}>
+        {/* Progress */}
+        <View style={styles.progressSection}>
+          <View style={styles.progressHeader}>
+            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+              Step {currentStep} of {totalFeatureSteps}
+            </Text>
+            <Text variant="labelMedium" style={{ color: theme.colors.primary }}>
+              {currentTourStep.progress}%
+            </Text>
+          </View>
+          <ProgressBar
+            progress={(currentTourStep.progress || 0) / 100}
+            color={theme.colors.primary}
+            style={styles.progressBar}
+          />
+        </View>
+
+        {/* Feature Content */}
+        <View style={styles.featureHeader}>
+          <Text style={styles.featureEmoji}>{currentTourStep.emoji}</Text>
+          <View style={styles.featureHeaderText}>
+            <Text variant="titleLarge" style={[styles.featureTitle, { color: theme.colors.onSurface }]}>
+              {currentTourStep.title}
+            </Text>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+              {currentTourStep.description}
+            </Text>
+            <View style={[styles.locationBadge, { backgroundColor: theme.colors.primaryContainer }]}>
+              <Text style={styles.locationIcon}>📍</Text>
+              <Text variant="labelSmall" style={{ color: theme.colors.primary }}>
+                {currentTourStep.location}
+              </Text>
+            </View>
           </View>
         </View>
-      </Surface>
+
+        {/* Features List */}
+        <View style={[styles.featuresContainer, { backgroundColor: theme.colors.surface }]}>
+          <Text variant="titleSmall" style={[styles.featuresTitle, { color: theme.colors.onSurface }]}>
+            Key Features:
+          </Text>
+          {currentTourStep.features?.map((feature, idx) => (
+            <View key={idx} style={styles.featureItem}>
+              <Text style={{ color: theme.colors.primary }}>✓</Text>
+              <Text variant="bodySmall" style={[styles.featureText, { color: theme.colors.onSurfaceVariant }]}>
+                {feature}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Tip */}
+        <View style={[styles.tipContainer, { backgroundColor: theme.colors.primaryContainer }]}>
+          <View style={[styles.tipBorder, { backgroundColor: theme.colors.primary }]} />
+          <View style={styles.tipContent}>
+            <Text style={styles.tipIcon}>💡</Text>
+            <View style={styles.tipTextContainer}>
+              <Text variant="labelSmall" style={[styles.tipLabel, { color: theme.colors.primary }]}>
+                Pro Tip
+              </Text>
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                {currentTourStep.tip}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Navigation - Fixed at bottom */}
+      <View style={[styles.navigationContainer, { borderTopColor: theme.colors.outlineVariant }]}>
+        <Button
+          mode="contained"
+          onPress={handleNext}
+          style={styles.nextButton}
+          contentStyle={styles.buttonContent}
+          labelStyle={styles.buttonLabel}
+        >
+          Next →
+        </Button>
+
+        {/* Progress dots */}
+        <View style={styles.progressDots}>
+          {[...Array(totalFeatureSteps)].map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.progressDot,
+                i < currentStep
+                  ? { width: 32, backgroundColor: theme.colors.primary }
+                  : { width: 6, backgroundColor: theme.colors.outlineVariant },
+              ]}
+            />
+          ))}
+        </View>
+      </View>
     </View>
   );
 };
@@ -437,22 +431,20 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    borderRadius: 24,
-    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   featureCard: {
     width: '100%',
     maxWidth: 600,
     maxHeight: '95%',
-    borderRadius: 24,
-    overflow: 'hidden',
+    backgroundColor: 'transparent',
     flex: 1,
   },
   titleBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingVertical: 12,
     borderBottomWidth: 1,
   },

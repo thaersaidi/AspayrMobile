@@ -1,29 +1,38 @@
 export const colors = {
-  // Primary brand colors
+  // Primary brand colors (matching demo project)
   primary: '#8B5CF6',
-  primaryDark: '#7C3AED',
+  primaryDark: '#A855F7',
   primaryLight: '#A78BFA',
+  accent2: '#06B6D4',
+  magenta: '#C026D3',
+  cyan: '#22D3EE',
 
-  // Background colors
+  // Background colors (matching demo project)
   background: {
-    light: '#FFFFFF',
+    light: '#F8F9FA',
     dark: '#0F172A',
   },
 
-  // Surface colors
+  // Surface colors (matching demo project)
   surface: {
-    light: '#F8FAFC',
+    light: '#FFFFFF',
     dark: '#1E293B',
   },
 
-  // Text colors
+  // Card/section colors
+  card: {
+    light: '#FFFFFF',
+    dark: '#334155',
+  },
+
+  // Text colors (matching demo project)
   text: {
     primary: {
       light: '#1F2937',
       dark: '#F8FAFC',
     },
     secondary: {
-      light: '#4B5563',
+      light: '#6B7280',
       dark: '#CBD5E1',
     },
     tertiary: {
@@ -42,7 +51,7 @@ export const colors = {
   warning: '#F59E0B',
   info: '#3B82F6',
 
-  // Border colors
+  // Border colors (matching demo project)
   border: {
     light: '#E5E7EB',
     dark: '#334155',

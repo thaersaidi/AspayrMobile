@@ -263,13 +263,13 @@ export const OnboardingQuizScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
             <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
               Onboarding Quiz
             </Text>
-            <TouchableOpacity onPress={handleSkip}>
-              <Text style={{ color: theme.colors.primary }}>Skip</Text>
-            </TouchableOpacity>
+            <Button mode="text" onPress={handleSkip}>
+              Skip
+            </Button>
           </View>
 
           {/* Icon */}
@@ -307,13 +307,11 @@ export const OnboardingQuizScreen: React.FC<Props> = ({ navigation }) => {
               onPress={() => setCurrentStep(currentStep + 1)}
               style={styles.primaryButton}
             >
-              {currentQuestion.actions?.[0].label}
+              {currentQuestion.actions?.[0].label || ''}
             </Button>
-            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-              <Text style={{ color: theme.colors.primary }}>
-                {currentQuestion.actions?.[1].label}
-              </Text>
-            </TouchableOpacity>
+            <Button mode="text" onPress={handleSkip} style={styles.skipButton}>
+              {currentQuestion.actions?.[1].label || ''}
+            </Button>
           </View>
 
           {renderProgressDots()}
@@ -330,11 +328,11 @@ export const OnboardingQuizScreen: React.FC<Props> = ({ navigation }) => {
       >
         <View style={styles.content}>
           {/* Header */}
-          <View style={styles.header}>
+          <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
             <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
               Onboarding Quiz
             </Text>
-            <View style={{ width: 40 }} />
+            <View style={{ width: 48 }} />
           </View>
 
           {/* Success Icon */}
@@ -393,7 +391,7 @@ export const OnboardingQuizScreen: React.FC<Props> = ({ navigation }) => {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.outlineVariant }]}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Text style={[styles.backArrow, { color: theme.colors.primary }]}>
             ←
@@ -402,9 +400,9 @@ export const OnboardingQuizScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
           Onboarding Quiz
         </Text>
-        <TouchableOpacity onPress={handleSkip}>
-          <Text style={{ color: theme.colors.primary }}>Skip</Text>
-        </TouchableOpacity>
+        <Button mode="text" onPress={handleSkip}>
+          Skip
+        </Button>
       </View>
 
       <ScrollView
@@ -478,16 +476,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 8,
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
   },
   backButton: {
-    padding: 8,
+    padding: 4,
   },
   backArrow: {
     fontSize: 24,

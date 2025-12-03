@@ -31,46 +31,6 @@ import {
   calculateIncomeExpenses,
 } from '../../utils/insightsCalculations';
 
-// Custom Tab Button Component
-interface TabButtonProps {
-  icon: string;
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  theme: any;
-}
-
-const TabButton: React.FC<TabButtonProps> = ({ icon, label, active, onPress, theme }) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.customTabButton,
-        {
-          backgroundColor: active ? theme.colors.primary : 'transparent',
-          borderColor: active ? theme.colors.primary : theme.colors.outline,
-          borderWidth: 1,
-        },
-      ]}
-      onPress={onPress}
-    >
-      <Icon
-        name={icon}
-        size={24}
-        color={active ? theme.colors.onPrimary : theme.colors.primary}
-      />
-      <Text
-        variant="labelSmall"
-        style={[
-          styles.customTabButtonText,
-          { color: active ? theme.colors.onPrimary : theme.colors.onSurface },
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-};
-
 // Import new screen components
 import { SpendingScreen } from '../insights/SpendingScreen';
 import { BudgetsScreen } from '../insights/BudgetsScreen';
@@ -87,7 +47,7 @@ const TIME_FILTER_OPTIONS = [
   { label: 'All Time', value: 'all' as TimeFilter },
 ];
 
-export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
+export const InsightsScreenNew: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -281,36 +241,44 @@ export const InsightsScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScrollContent}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.tabButtons}>
-            <TabButton
-              icon="chart-pie"
-              label="Spending"
-              active={activeScreen === 'spending'}
+            <Button
+              mode={activeScreen === 'spending' ? 'contained' : 'outlined'}
               onPress={() => setActiveScreen('spending')}
-              theme={theme}
-            />
-            <TabButton
-              icon="wallet"
-              label="Budgets"
-              active={activeScreen === 'budgets'}
+              icon="chart-pie"
+              style={styles.tabButton}
+              compact
+            >
+              Spending
+            </Button>
+            <Button
+              mode={activeScreen === 'budgets' ? 'contained' : 'outlined'}
               onPress={() => setActiveScreen('budgets')}
-              theme={theme}
-            />
-            <TabButton
-              icon="refresh"
-              label="Recurring"
-              active={activeScreen === 'recurring'}
+              icon="wallet"
+              style={styles.tabButton}
+              compact
+            >
+              Budgets
+            </Button>
+            <Button
+              mode={activeScreen === 'recurring' ? 'contained' : 'outlined'}
               onPress={() => setActiveScreen('recurring')}
-              theme={theme}
-            />
-            <TabButton
-              icon="target"
-              label="Goals"
-              active={activeScreen === 'goals'}
+              icon="refresh"
+              style={styles.tabButton}
+              compact
+            >
+              Recurring
+            </Button>
+            <Button
+              mode={activeScreen === 'goals' ? 'contained' : 'outlined'}
               onPress={() => setActiveScreen('goals')}
-              theme={theme}
-            />
+              icon="target"
+              style={styles.tabButton}
+              compact
+            >
+              Goals
+            </Button>
           </View>
         </ScrollView>
       </View>
@@ -382,26 +350,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
   },
-  tabScrollContent: {
-    paddingRight: 16,
-  },
   tabButtons: {
     flexDirection: 'row',
     gap: 8,
   },
-  customTabButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    minWidth: 70,
+  tabButton: {
     marginRight: 8,
-  },
-  customTabButtonText: {
-    marginTop: 4,
-    fontSize: 11,
-    textAlign: 'center',
   },
   content: {
     flex: 1,

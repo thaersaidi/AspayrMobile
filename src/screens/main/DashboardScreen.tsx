@@ -21,6 +21,7 @@ type Props = NativeStackScreenProps<BottomTabParamList, 'Dashboard'>;
 
 export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const styles = createStyles(theme);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -152,9 +153,9 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerTextContainer}>
             <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.userName}>
+            <Text style={styles.userName} numberOfLines={1} ellipsizeMode="tail">
               {user?.userDetails?.displayName || user?.username || 'User'}
             </Text>
           </View>
@@ -313,10 +314,10 @@ const QuickActionButton: React.FC<{
   </TouchableOpacity>
 );
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: theme.colors.background,
   },
   content: {
     padding: 20,
@@ -328,15 +329,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
   greeting: {
     fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 2,
+    color: theme.colors.onSurfaceVariant,
+    marginBottom: 4,
   },
   userName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
   },
   profileButton: {
     padding: 4,
@@ -346,7 +351,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#F3E8FF',
+    backgroundColor: theme.colors.primaryContainer,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
@@ -366,21 +371,21 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 2,
   },
   bannerSubtext: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   bannerButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   bannerButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.onPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -389,23 +394,23 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 24,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 20,
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     marginBottom: 8,
   },
   balanceAmount: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#8B5CF6',
+    color: theme.colors.primary,
     marginBottom: 8,
   },
   accountCount: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   // Quick Actions
   quickActions: {
@@ -414,7 +419,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 16,
   },
   actionsGrid: {
@@ -429,7 +434,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -440,7 +445,7 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     textAlign: 'center',
   },
   // Section
@@ -456,12 +461,12 @@ const styles = StyleSheet.create({
   seeAll: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: theme.colors.primary,
   },
   // Account Card
   accountCard: {
     marginBottom: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
   },
   accountCardInner: {
@@ -473,7 +478,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#F3E8FF',
+    backgroundColor: theme.colors.primaryContainer,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -482,7 +487,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
   },
   accountEmoji: {
     fontSize: 22,
@@ -493,30 +498,30 @@ const styles = StyleSheet.create({
   accountName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 2,
   },
   accountType: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
   },
   accountBalance: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: theme.colors.primary,
   },
   // Empty State
   emptyCard: {
     padding: 32,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: 20,
   },
   emptyIconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.surfaceVariant,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -527,25 +532,25 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1F2937',
+    color: theme.colors.onSurface,
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.onSurfaceVariant,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
   },
   emptyButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 28,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -554,7 +559,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-    backgroundColor: '#8B5CF6',
+    backgroundColor: theme.colors.primary,
     borderRadius: 28,
   },
 });

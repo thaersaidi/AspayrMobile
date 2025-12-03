@@ -235,4 +235,15 @@ export const userStorage = {
   async setBiometricEnabled(enabled: boolean) {
     return storage.set(STORAGE_KEYS.BIOMETRIC_ENABLED, enabled);
   },
+
+  // Check if session is verified (PIN entered)
+  async isSessionVerified(): Promise<boolean> {
+    const value: any = await storage.get('aspayr_session_verified');
+    return value === true || value === 'true';
+  },
+
+  // Set session verified (after PIN entry)
+  async setSessionVerified(verified: boolean) {
+    return storage.set('aspayr_session_verified', verified);
+  },
 };

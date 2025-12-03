@@ -13,13 +13,14 @@ import { BottomTabParamList } from '../../types/navigation';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { userStorage, secureStorage } from '../../utils/storage';
+import { useThemeContext } from '../../contexts/ThemeContext';
 
 type Props = NativeStackScreenProps<BottomTabParamList, 'Profile'>;
 
 export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
-  const theme = useTheme();
+  const paperTheme = useTheme();
+  const { theme, toggleTheme } = useThemeContext();
   const [user, setUser] = useState<any>(null);
-  const [darkMode, setDarkMode] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
   useEffect(() => {
@@ -30,18 +31,8 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     const userData = await userStorage.getUser();
     setUser(userData);
 
-    const themePreference = await userStorage.getTheme();
-    setDarkMode(themePreference === 'dark');
-
     const biometric = await userStorage.isBiometricEnabled();
     setBiometricEnabled(biometric);
-  };
-
-  const toggleDarkMode = async () => {
-    const newValue = !darkMode;
-    setDarkMode(newValue);
-    await userStorage.setTheme(newValue ? 'dark' : 'light');
-    // Note: Full theme switch would require app-level state management
   };
 
   const toggleBiometric = async () => {
@@ -60,9 +51,24 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await userStorage.removeUser();
-            await secureStorage.removeCredentials();
-            // Navigation will be handled by AppNavigator checking auth status
+            try {
+              // Clear user data and credentials
+              await userStorage.removeUser();
+              await secureStorage.removeCredentials();
+
+              // Clear session verification flag
+              await userStorage.setSessionVerified(false);
+
+              // Force reload the app by resetting navigation stack
+              // This will trigger the AppNavigator to re-check auth status
+              navigation.getParent()?.reset({
+                index: 0,
+                routes: [{ name: 'Auth' as any }],
+              });
+            } catch (error) {
+              console.error('[Logout] Error during logout:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
           },
         },
       ]
@@ -79,7 +85,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[styles.container, { backgroundColor: paperTheme.colors.background }]}
       contentContainerStyle={styles.content}
     >
       {/* Profile Header */}
@@ -88,21 +94,21 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           <View
             style={[
               styles.avatar,
-              { backgroundColor: theme.colors.primaryContainer },
+              { backgroundColor: paperTheme.colors.primaryContainer },
             ]}
           >
-            <Text style={[styles.avatarText, { color: theme.colors.primary }]}>
+            <Text style={[styles.avatarText, { color: paperTheme.colors.primary }]}>
               {(user?.userDetails?.displayName || user?.username || 'U')
                 .charAt(0)
                 .toUpperCase()}
             </Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: theme.colors.onSurface }]}>
+            <Text style={[styles.profileName, { color: paperTheme.colors.onSurface }]}>
               {user?.userDetails?.displayName || 'User'}
             </Text>
             <Text
-              style={[styles.profileEmail, { color: theme.colors.onSurfaceVariant }]}
+              style={[styles.profileEmail, { color: paperTheme.colors.onSurfaceVariant }]}
             >
               {user?.username || user?.userDetails?.email || 'email@example.com'}
             </Text>
@@ -112,7 +118,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Settings Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           Preferences
         </Text>
 
@@ -120,9 +126,9 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           <SettingItem
             icon="theme-light-dark"
             label="Dark Mode"
-            value={darkMode}
-            onValueChange={toggleDarkMode}
-            theme={theme}
+            value={theme === 'dark'}
+            onValueChange={toggleTheme}
+            theme={paperTheme}
           />
           <Divider />
           <SettingItem
@@ -130,14 +136,14 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             label="Biometric Authentication"
             value={biometricEnabled}
             onValueChange={toggleBiometric}
-            theme={theme}
+            theme={paperTheme}
           />
         </Card>
       </View>
 
       {/* Security Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           Security
         </Text>
 
@@ -146,21 +152,21 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             icon="lock-reset"
             label="Change PIN"
             onPress={handleChangePin}
-            theme={theme}
+            theme={paperTheme}
           />
           <Divider />
           <MenuItem
             icon="shield-check"
             label="Security Settings"
             onPress={() => Alert.alert('Coming Soon', 'Security settings will be available soon')}
-            theme={theme}
+            theme={paperTheme}
           />
         </Card>
       </View>
 
       {/* App Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+        <Text style={[styles.sectionTitle, { color: paperTheme.colors.onSurface }]}>
           About
         </Text>
 
@@ -169,7 +175,7 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             icon="information"
             label="App Version"
             value="0.0.1"
-            theme={theme}
+            theme={paperTheme}
             hideArrow
           />
           <Divider />
@@ -177,14 +183,14 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
             icon="help-circle"
             label="Help & Support"
             onPress={() => Alert.alert('Help', 'Support resources coming soon')}
-            theme={theme}
+            theme={paperTheme}
           />
           <Divider />
           <MenuItem
             icon="file-document"
             label="Privacy Policy"
             onPress={() => Alert.alert('Privacy', 'Privacy policy coming soon')}
-            theme={theme}
+            theme={paperTheme}
           />
         </Card>
       </View>
@@ -193,16 +199,16 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       <Button
         mode="outlined"
         onPress={handleLogout}
-        style={[styles.logoutButton, { borderColor: theme.colors.error }]}
+        style={[styles.logoutButton, { borderColor: paperTheme.colors.error }]}
       >
-        <Text style={{ color: theme.colors.error }}>Logout</Text>
+        <Text style={{ color: paperTheme.colors.error }}>Logout</Text>
       </Button>
 
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
+        <Text style={[styles.footerText, { color: paperTheme.colors.onSurfaceVariant }]}>
           Aspayr Mobile v0.0.1
         </Text>
-        <Text style={[styles.footerText, { color: theme.colors.onSurfaceVariant }]}>
+        <Text style={[styles.footerText, { color: paperTheme.colors.onSurfaceVariant }]}>
           Banking + AI Financial Assistant
         </Text>
       </View>

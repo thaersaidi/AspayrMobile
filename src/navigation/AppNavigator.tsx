@@ -67,13 +67,21 @@ export const AppNavigator = () => {
 
   useEffect(() => {
     checkAuthStatus();
+
+    // Set up an interval to periodically check auth status
+    // This ensures logout is detected
+    const interval = setInterval(() => {
+      checkAuthStatus();
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
   }, []);
 
   const checkAuthStatus = async () => {
     try {
       const userJson = await AsyncStorage.getItem(STORAGE_KEYS.USER);
       const sessionVerifiedRaw = await AsyncStorage.getItem('aspayr_session_verified');
-      
+
       // Parse the session verified value (it's JSON-stringified)
       let sessionVerified = false;
       if (sessionVerifiedRaw) {
@@ -83,22 +91,20 @@ export const AppNavigator = () => {
           sessionVerified = sessionVerifiedRaw === 'true';
         }
       }
-      
-      console.log('[AppNavigator] Auth check - user:', !!userJson, 'sessionRaw:', sessionVerifiedRaw, 'sessionParsed:', sessionVerified);
-      
-      if (userJson && sessionVerified) {
-        const user = JSON.parse(userJson);
-        // Check if user exists AND session is verified (PIN entered)
-        setIsAuthenticated(!!user.userUuid);
-        console.log('[AppNavigator] User authenticated:', !!user.userUuid);
-      } else {
-        console.log('[AppNavigator] Not authenticated');
-        setIsAuthenticated(false);
+
+      const isAuth = !!(userJson && sessionVerified && JSON.parse(userJson)?.userUuid);
+
+      // Only update state if it changed to avoid unnecessary re-renders
+      if (isAuth !== isAuthenticated) {
+        console.log('[AppNavigator] Auth status changed:', isAuth);
+        setIsAuthenticated(isAuth);
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
     } finally {
-      setIsLoading(false);
+      if (isLoading) {
+        setIsLoading(false);
+      }
     }
   };
 

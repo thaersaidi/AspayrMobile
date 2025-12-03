@@ -125,4 +125,40 @@ export const storageApi = {
   async deleteBudget(userId: string, budgetId: string): Promise<void> {
     return apiClient.delete(`/api/budgets/${budgetId}?userId=${userId}`);
   },
+
+  /**
+   * Get goals from CosmosDB
+   */
+  async getGoals(userId: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get<{ data?: any[] }>(
+        `/api/goals?userId=${userId}`
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error('[API] Failed to fetch goals:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Save a single goal to CosmosDB
+   */
+  async saveGoal(userId: string, goalData: any): Promise<void> {
+    return apiClient.post('/api/goals', { userId, ...goalData });
+  },
+
+  /**
+   * Save multiple goals to CosmosDB
+   */
+  async saveGoalsBulk(userId: string, goals: any[]): Promise<void> {
+    return apiClient.post('/api/goals/bulk', { userId, goals });
+  },
+
+  /**
+   * Delete a goal from CosmosDB
+   */
+  async deleteGoal(userId: string, goalId: string): Promise<void> {
+    return apiClient.delete(`/api/goals/${goalId}?userId=${userId}`);
+  },
 };
