@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
-import { Button } from '../../components/common/Button';
+import { Logo } from '../../components/common/Logo';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 
@@ -11,149 +11,165 @@ export const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.content}
-    >
-      <View style={styles.logoContainer}>
-        <Text
-          style={[
-            styles.logo,
-            { color: theme.colors.primary },
-          ]}
-        >
-          Aspayr
-        </Text>
-        <Text style={[styles.tagline, { color: theme.colors.onSurface }]}>
-          Banking + AI Financial Assistant
-        </Text>
-      </View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.container}>
+        {/* Header with Logo */}
+        <View style={styles.header}>
+          <Logo style={styles.logo} />
+        </View>
 
-      <View style={styles.features}>
-        <FeatureItem
-          icon="🏦"
-          title="Multi-Bank Integration"
-          description="Link accounts from 200+ financial institutions"
-        />
-        <FeatureItem
-          icon="🤖"
-          title="AI-Powered Insights"
-          description="Intelligent financial advice and analysis"
-        />
-        <FeatureItem
-          icon="📊"
-          title="Visual Dashboards"
-          description="Charts and graphs for your financial data"
-        />
-        <FeatureItem
-          icon="🔒"
-          title="Secure & Private"
-          description="Bank-level encryption and biometric auth"
-        />
-      </View>
+        {/* Scrollable content */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Phone mockup placeholder */}
+          <View style={styles.mockupContainer}>
+            <View style={[styles.phoneMockup, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <View style={[styles.phoneScreen, { backgroundColor: '#000' }]}>
+                <View style={styles.phoneContent}>
+                  <Text style={styles.mockupText}>💰</Text>
+                  <Text style={[styles.mockupAmount, { color: theme.colors.primary }]}>$20,000.00</Text>
+                </View>
+              </View>
+            </View>
+          </View>
 
-      <View style={styles.actions}>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('Login')}
-          style={styles.button}
-        >
-          Sign In
-        </Button>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('Register')}
-          style={styles.button}
-        >
-          Create Account
-        </Button>
-      </View>
-    </ScrollView>
-  );
-};
+          {/* Progress indicator */}
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressDot, styles.progressDotActive, { backgroundColor: theme.colors.primary }]} />
+            <View style={[styles.progressDot, { backgroundColor: theme.colors.surfaceVariant }]} />
+            <View style={[styles.progressDot, { backgroundColor: theme.colors.surfaceVariant }]} />
+          </View>
 
-const FeatureItem: React.FC<{
-  icon: string;
-  title: string;
-  description: string;
-}> = ({ icon, title, description }) => {
-  const theme = useTheme();
+          {/* Main content */}
+          <View style={styles.content}>
+            <Text style={[styles.title, { color: theme.colors.onSurface }]}>
+              Your Money, Your Way
+            </Text>
+            <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+              Take control of your finances with Aspayr
+            </Text>
+          </View>
+        </ScrollView>
 
-  return (
-    <View style={styles.featureItem}>
-      <Text style={styles.featureIcon}>{icon}</Text>
-      <View style={styles.featureText}>
-        <Text
-          style={[styles.featureTitle, { color: theme.colors.onSurface }]}
-        >
-          {title}
-        </Text>
-        <Text
-          style={[
-            styles.featureDescription,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
-          {description}
-        </Text>
+        {/* Continue button - fixed at bottom */}
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.continueButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={[styles.continueButtonText, { color: theme.colors.onPrimary }]}>
+              Continue
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
+    paddingHorizontal: 24,
   },
-  content: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: 'space-between',
-  },
-  logoContainer: {
+  header: {
     alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    paddingVertical: 16,
+  },
+  brandText: {
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
   logo: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    width: 120,
+    height: 40,
+    resizeMode: 'contain',
   },
-  tagline: {
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 16,
+  },
+  mockupContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  phoneMockup: {
+    width: 180,
+    height: 320,
+    borderRadius: 30,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  phoneScreen: {
+    flex: 1,
+    borderRadius: 24,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  phoneContent: {
+    alignItems: 'center',
+  },
+  mockupText: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  mockupAmount: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginVertical: 16,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  progressDotActive: {
+    width: 24,
+  },
+  content: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    opacity: 0.8,
+    lineHeight: 22,
   },
-  features: {
-    flex: 1,
+  footer: {
+    paddingVertical: 16,
+    paddingBottom: 20,
+  },
+  continueButton: {
+    paddingVertical: 16,
+    borderRadius: 28,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  featureIcon: {
-    fontSize: 40,
-    marginRight: 16,
-  },
-  featureText: {
-    flex: 1,
-  },
-  featureTitle: {
-    fontSize: 18,
+  continueButtonText: {
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  featureDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  actions: {
-    marginTop: 40,
-  },
-  button: {
-    marginBottom: 12,
   },
 });

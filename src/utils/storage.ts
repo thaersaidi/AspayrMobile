@@ -96,13 +96,16 @@ export const secureStorage = {
   // Remove credentials
   async removeCredentials(service?: string): Promise<boolean> {
     try {
-      await Keychain.resetGenericPassword({
-        service: service || 'aspayr',
-      });
+      // Check if Keychain is available (not available on web)
+      if (Keychain && Keychain.resetGenericPassword) {
+        await Keychain.resetGenericPassword({
+          service: service || 'aspayr',
+        });
+      }
       return true;
-    } catch (error) {
-      console.error('Error removing credentials:', error);
-      return false;
+    } catch {
+      // Silently ignore errors on web where Keychain is not supported
+      return true;
     }
   },
 

@@ -1,27 +1,17 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { Text, useTheme, Divider } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
-import { Button } from '../../components/common/Button';
-import { Input } from '../../components/common/Input';
 import { authApi } from '../../api';
 import { initializeMsal, getMsalInstance, loginRequest, isMsalAvailable } from '../../services/msalConfig';
+import { Logo } from '../../components/common/Logo';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [msalReady, setMsalReady] = useState(false);
 
   React.useEffect(() => {
@@ -37,45 +27,18 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, []);
 
-  const handleEmailLogin = async () => {
-    if (!email || !password) {
-      setError('Please enter both email and password');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      // Check if user exists
-      const { exists, userUuid } = await authApi.checkUserExists(email);
-
-      if (exists && userUuid) {
-        // User exists, go to PIN verification
-        navigation.navigate('PINVerify', { email });
-      } else {
-        setError('User not found. Please register first.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleMicrosoftLogin = async () => {
     if (!isMsalAvailable()) {
-      setError('Microsoft login is only available on web. MSAL configuration is missing.');
+      alert('Microsoft login is only available on web.');
       return;
     }
 
     if (!msalReady) {
-      setError('Microsoft login is initializing. Please try again in a moment.');
+      alert('Microsoft login is initializing. Please try again in a moment.');
       return;
     }
 
     setLoading(true);
-    setError('');
 
     try {
       const msalInstance = getMsalInstance();
@@ -101,164 +64,195 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
       }
     } catch (err: any) {
       console.error('[Auth] Microsoft login failed:', err);
-      setError(err.message || 'Microsoft login failed');
+      alert(err.message || 'Microsoft login failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        style={[styles.scroll, { backgroundColor: theme.colors.background }]}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.container}>
+        {/* Header with Logo */}
         <View style={styles.header}>
-          <Text
-            style={[styles.title, { color: theme.colors.onSurface }]}
-          >
-            Welcome Back
-          </Text>
-          <Text
-            style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
-          >
-            Sign in to your account
-          </Text>
+          <Logo style={styles.logo} />
         </View>
 
-        {error ? (
-          <View
-            style={[
-              styles.errorBox,
-              { backgroundColor: theme.colors.errorContainer },
-            ]}
-          >
-            <Text style={{ color: theme.colors.error }}>{error}</Text>
+        {/* Scrollable content */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+        {/* Phone mockup placeholder */}
+        <View style={styles.mockupContainer}>
+          <View style={[styles.phoneMockup, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <View style={[styles.phoneScreen, { backgroundColor: '#000' }]}>
+              <View style={styles.phoneContent}>
+                <Text style={styles.mockupText}>📊</Text>
+                <Text style={[styles.mockupLabel, { color: '#fff' }]}>Analytics Report</Text>
+              </View>
+            </View>
           </View>
-        ) : null}
-
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="your@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            disabled={loading}
-          />
-
-          <Input
-            label="Password (PIN later)"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Enter temporary password"
-            secureTextEntry
-            disabled={loading}
-            style={styles.input}
-          />
-
-          <Button
-            mode="contained"
-            onPress={handleEmailLogin}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            Continue
-          </Button>
-
-          <View style={styles.dividerContainer}>
-            <Divider style={styles.divider} />
-            <Text
-              style={[
-                styles.dividerText,
-                { color: theme.colors.onSurfaceVariant },
-              ]}
-            >
-              OR
-            </Text>
-            <Divider style={styles.divider} />
-          </View>
-
-          <Button
-            mode="outlined"
-            onPress={handleMicrosoftLogin}
-            disabled={loading}
-            icon="microsoft"
-            style={styles.button}
-          >
-            Continue with Microsoft
-          </Button>
-
-          <Button
-            mode="text"
-            onPress={() => navigation.navigate('Register')}
-            disabled={loading}
-            style={styles.linkButton}
-          >
-            Don't have an account? Sign up
-          </Button>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        {/* Progress indicator */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressDot, { backgroundColor: theme.colors.surfaceVariant }]} />
+          <View style={[styles.progressDot, styles.progressDotActive, { backgroundColor: theme.colors.primary }]} />
+          <View style={[styles.progressDot, { backgroundColor: theme.colors.surfaceVariant }]} />
+        </View>
+
+        {/* Main content */}
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>
+            Save & Invest Your Money
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+            Where saving and investing your money is made simple
+          </Text>
+        </View>
+        </ScrollView>
+
+        {/* Action buttons - fixed at bottom */}
+        <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.joinButton, { borderColor: theme.colors.primary }]}
+          onPress={() => navigation.navigate('Register')}
+          disabled={loading}
+        >
+          <Text style={[styles.joinButtonText, { color: theme.colors.primary }]}>
+            Join Aspayr
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.loginButton, { backgroundColor: theme.colors.primary }]}
+          onPress={handleMicrosoftLogin}
+          disabled={loading}
+        >
+          <Text style={[styles.loginButtonText, { color: theme.colors.onPrimary }]}>
+            {loading ? 'Logging in...' : 'Login'}
+          </Text>
+        </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    flexGrow: 1,
-    padding: 24,
+    paddingHorizontal: 24,
   },
   header: {
-    marginTop: 40,
-    marginBottom: 32,
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  brandText: {
+    fontSize: 24,
+    fontWeight: '600',
+    letterSpacing: 1,
+  },
+  logo: {
+    width: 120,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 16,
+  },
+  mockupContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  phoneMockup: {
+    width: 180,
+    height: 320,
+    borderRadius: 30,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  phoneScreen: {
+    flex: 1,
+    borderRadius: 24,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  phoneContent: {
+    alignItems: 'center',
+  },
+  mockupText: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  mockupLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginVertical: 16,
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  progressDotActive: {
+    width: 24,
+  },
+  content: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  errorBox: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+  footer: {
+    paddingVertical: 16,
+    paddingBottom: 20,
+    gap: 12,
   },
-  form: {
-    flex: 1,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 8,
-  },
-  dividerContainer: {
-    flexDirection: 'row',
+  joinButton: {
+    paddingVertical: 16,
+    borderRadius: 28,
+    borderWidth: 1,
     alignItems: 'center',
-    marginVertical: 24,
+    justifyContent: 'center',
   },
-  divider: {
-    flex: 1,
+  joinButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
+  loginButton: {
+    paddingVertical: 16,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  linkButton: {
-    marginTop: 16,
+  loginButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

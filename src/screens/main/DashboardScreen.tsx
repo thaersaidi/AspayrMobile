@@ -305,14 +305,19 @@ const QuickActionButton: React.FC<{
   emoji: string;
   label: string;
   onPress: () => void;
-}> = ({ emoji, label, onPress }) => (
-  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-    <View style={styles.actionIconContainer}>
-      <Text style={styles.actionEmoji}>{emoji}</Text>
-    </View>
-    <Text style={styles.actionLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+}> = ({ emoji, label, onPress }) => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
+
+  return (
+    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
+      <View style={styles.actionIconContainer}>
+        <Text style={styles.actionEmoji}>{emoji}</Text>
+      </View>
+      <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const createStyles = (theme: any) => StyleSheet.create({
   container: {

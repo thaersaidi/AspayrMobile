@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Platform,
 } from 'react-native';
 import { Text, useTheme, Switch, Divider } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -41,38 +42,37 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
     await userStorage.setBiometricEnabled(newValue);
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Clear user data and credentials
-              await userStorage.removeUser();
-              await secureStorage.removeCredentials();
+  const handleLogout = async () => {
+    console.log('[ProfileScreen] Logout button pressed!');
 
-              // Clear session verification flag
-              await userStorage.setSessionVerified(false);
+    try {
+      console.log('[Logout] Starting logout process...');
 
-              // Force reload the app by resetting navigation stack
-              // This will trigger the AppNavigator to re-check auth status
-              navigation.getParent()?.reset({
-                index: 0,
-                routes: [{ name: 'Auth' as any }],
-              });
-            } catch (error) {
-              console.error('[Logout] Error during logout:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+      // Clear session verification flag first (triggers auth check)
+      await userStorage.setSessionVerified(false);
+
+      // Clear all user data
+      await userStorage.removeUser();
+
+      // Clear all credentials (PIN, tokens, etc.)
+      await secureStorage.removeCredentials();
+      await secureStorage.removeCredentials('aspayr_pin');
+      await secureStorage.removeAccessToken();
+
+      console.log('[Logout] Logout complete. Redirecting to login...');
+
+      // For web, reload the page to trigger auth check
+      if (Platform.OS === 'web') {
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      } else {
+        // For native, the AppNavigator interval will detect the logout
+        // within 1 second and redirect automatically
+      }
+    } catch (error) {
+      console.error('[Logout] Error during logout:', error);
+    }
   };
 
   const handleChangePin = () => {
@@ -196,13 +196,14 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       {/* Logout Button */}
-      <Button
-        mode="outlined"
-        onPress={handleLogout}
+      <TouchableOpacity
         style={[styles.logoutButton, { borderColor: paperTheme.colors.error }]}
+        onPress={handleLogout}
       >
-        <Text style={{ color: paperTheme.colors.error }}>Logout</Text>
-      </Button>
+        <Text style={[styles.logoutButtonText, { color: paperTheme.colors.error }]}>
+          Logout
+        </Text>
+      </TouchableOpacity>
 
       <View style={styles.footer}>
         <Text style={[styles.footerText, { color: paperTheme.colors.onSurfaceVariant }]}>
@@ -332,6 +333,15 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginVertical: 24,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
