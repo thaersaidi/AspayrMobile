@@ -1,29 +1,34 @@
 import { Platform } from 'react-native';
 import { MSAL_CONFIG } from '../config/msal.config';
+import Constants from 'expo-constants';
+import * as AuthSession from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { createMsalInstance, isMsalSupported } from './msalWeb';
 
-// Import MSAL for web platform (will be tree-shaken on native)
-let PublicClientApplication: any = null;
-if (Platform.OS === 'web') {
-  PublicClientApplication = require('@azure/msal-browser').PublicClientApplication;
+// Complete auth session for native platforms
+if (Platform.OS !== 'web') {
+  WebBrowser.maybeCompleteAuthSession();
 }
 
-// Helper function to safely get react-native-config (only works on native platforms)
+// MSAL instance for web
+let webMsalInstance: any = null;
+
+// Helper function to safely get config from Expo environment variables
 const getNativeConfig = () => {
   if (Platform.OS === 'web') {
     return null;
   }
-  try {
-    return require('react-native-config').default;
-  } catch {
-    console.warn('[MSAL] react-native-config not available');
-    return null;
-  }
+  return {
+    MSAL_CLIENT_ID: process.env.EXPO_PUBLIC_MSAL_CLIENT_ID,
+    MSAL_TENANT_ID: process.env.EXPO_PUBLIC_MSAL_TENANT_ID,
+    MSAL_AUTHORITY: process.env.EXPO_PUBLIC_MSAL_AUTHORITY,
+    MSAL_REDIRECT_URI: process.env.EXPO_PUBLIC_MSAL_REDIRECT_URI,
+  };
 };
 
 // Platform-specific config loading
 let Config: any = {};
 if (Platform.OS === 'web') {
-  // On web, use the bundled config file
   Config = {
     MSAL_CLIENT_ID: MSAL_CONFIG.CLIENT_ID,
     MSAL_TENANT_ID: MSAL_CONFIG.TENANT_ID,
@@ -31,7 +36,6 @@ if (Platform.OS === 'web') {
     MSAL_REDIRECT_URI: MSAL_CONFIG.REDIRECT_URI_WEB,
   };
 } else {
-  // On native, use react-native-config from .env file
   const RNConfig = getNativeConfig();
   Config = {
     MSAL_CLIENT_ID: RNConfig?.MSAL_CLIENT_ID || MSAL_CONFIG.CLIENT_ID,
@@ -45,31 +49,45 @@ if (Platform.OS === 'web') {
 const clientId = Config.MSAL_CLIENT_ID || '';
 const tenantId = Config.MSAL_TENANT_ID || '';
 const authorityEnv = Config.MSAL_AUTHORITY || '';
-const redirectUri = Config.MSAL_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : '');
 
 const resolvedAuthority =
   authorityEnv ||
   (tenantId
     ? `https://login.microsoftonline.com/${tenantId}`
-    : 'https://login.microsoftonline.com/consumers'); // personal accounts by default
+    : 'https://login.microsoftonline.com/consumers');
+
+// For Expo Auth Session - use the Expo proxy redirect URI
+const nativeRedirectUri = AuthSession.makeRedirectUri({
+  scheme: 'aspayr',
+  path: 'auth',
+});
+
+const webRedirectUri = Config.MSAL_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : '');
 
 // Debug logging
 console.log('[MSAL Config] Loaded configuration:', {
   platform: Platform.OS,
   clientId: clientId ? `${clientId.substring(0, 8)}...` : 'MISSING',
   authority: resolvedAuthority,
-  redirectUri: redirectUri,
+  redirectUri: Platform.OS === 'web' ? webRedirectUri : nativeRedirectUri,
 });
 
 if (!clientId) {
   console.warn('[Auth] MSAL_CLIENT_ID is not set. Microsoft sign-in will be disabled.');
 }
 
+// Microsoft OAuth discovery document
+const discovery = {
+  authorizationEndpoint: `${resolvedAuthority}/oauth2/v2.0/authorize`,
+  tokenEndpoint: `${resolvedAuthority}/oauth2/v2.0/token`,
+  revocationEndpoint: `${resolvedAuthority}/oauth2/v2.0/logout`,
+};
+
 export const msalConfig = {
   auth: {
     clientId: clientId || '',
     authority: resolvedAuthority,
-    redirectUri,
+    redirectUri: Platform.OS === 'web' ? webRedirectUri : nativeRedirectUri,
   },
   cache: {
     cacheLocation: 'localStorage',
@@ -81,44 +99,164 @@ export const loginRequest = {
   scopes: ['User.Read', 'openid', 'profile', 'email'],
 };
 
-// MSAL instance for web platform - lazy loaded
-let msalInstance: any = null;
 let msalInitPromise: Promise<void> | null = null;
 
 export const initializeMsal = async () => {
+  // For native platforms, no initialization needed - using expo-auth-session
   if (Platform.OS !== 'web') {
-    return;
+    console.log('[Auth] Native MSAL (expo-auth-session) ready');
+    return null;
   }
 
-  if (msalInstance) {
-    return msalInstance;
+  // Initialize for web platform
+  if (webMsalInstance) {
+    return webMsalInstance;
   }
 
   try {
-    if (!PublicClientApplication) {
-      throw new Error('MSAL browser library not loaded');
+    if (!isMsalSupported) {
+      throw new Error('MSAL is not available on this platform');
     }
 
-    msalInstance = new PublicClientApplication(msalConfig as any);
-    msalInitPromise = msalInstance.initialize();
+    webMsalInstance = createMsalInstance(msalConfig);
+    msalInitPromise = webMsalInstance.initialize();
     await msalInitPromise;
-    console.log('[Auth] MSAL initialized successfully');
-    return msalInstance;
+    
+    // Handle redirect response after login
+    await webMsalInstance.handleRedirectPromise();
+    
+    console.log('[Auth] Web MSAL initialized successfully');
+    return webMsalInstance;
   } catch (error) {
-    console.error('[Auth] Failed to initialize MSAL:', error);
+    console.error('[Auth] Failed to initialize web MSAL:', error);
     throw error;
   }
 };
 
-export { msalInstance, msalInitPromise };
-
 export const getMsalInstance = () => {
-  if (!msalInstance) {
-    throw new Error('MSAL is not initialized. Call initializeMsal() first.');
+  if (Platform.OS !== 'web') {
+    throw new Error('Use msalLogin() for native platforms instead of getMsalInstance()');
   }
-  return msalInstance;
+  
+  if (!webMsalInstance) {
+    throw new Error('Web MSAL is not initialized. Call initializeMsal() first.');
+  }
+  return webMsalInstance;
 };
 
 export const isMsalAvailable = () => {
-  return Platform.OS === 'web' && !!clientId;
+  return !!clientId;
 };
+
+// Platform-specific login function
+export const msalLogin = async (): Promise<{
+  accessToken: string;
+  account: {
+    username?: string;
+    name?: string;
+    localAccountId?: string;
+  };
+} | null> => {
+  if (Platform.OS !== 'web') {
+    // Native login using expo-auth-session
+    try {
+      const request = new AuthSession.AuthRequest({
+        clientId,
+        scopes: loginRequest.scopes,
+        redirectUri: nativeRedirectUri,
+        responseType: AuthSession.ResponseType.Token,
+        usePKCE: false, // Microsoft doesn't require PKCE for implicit flow
+      });
+
+      const result = await request.promptAsync(discovery);
+      
+      if (result.type === 'success' && result.authentication) {
+        const accessToken = result.authentication.accessToken;
+        
+        // Fetch user info from Microsoft Graph
+        const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        
+        if (!userInfoResponse.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+        
+        const userInfo = await userInfoResponse.json();
+        
+        return {
+          accessToken,
+          account: {
+            username: userInfo.mail || userInfo.userPrincipalName,
+            name: userInfo.displayName,
+            localAccountId: userInfo.id,
+          },
+        };
+      } else if (result.type === 'cancel') {
+        console.log('[Auth] User cancelled login');
+        return null;
+      } else if (result.type === 'error') {
+        throw new Error(result.error?.message || 'Authentication failed');
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('[Auth] Native MSAL login failed:', error);
+      throw error;
+    }
+  }
+  
+  // Web login using @azure/msal-browser
+  if (!webMsalInstance) {
+    await initializeMsal();
+  }
+  
+  try {
+    await webMsalInstance.loginRedirect(loginRequest);
+    // Note: loginRedirect doesn't return a result - it redirects the page
+    return null;
+  } catch (error) {
+    console.error('[Auth] Web MSAL login failed:', error);
+    throw error;
+  }
+};
+
+// Platform-specific logout function
+export const msalLogout = async () => {
+  if (Platform.OS !== 'web') {
+    // For native, we just clear any cached tokens
+    // expo-auth-session doesn't maintain persistent sessions
+    console.log('[Auth] Native logout - session cleared');
+    return;
+  }
+  
+  if (webMsalInstance) {
+    try {
+      await webMsalInstance.logoutRedirect();
+    } catch (error) {
+      console.error('[Auth] Web MSAL logout failed:', error);
+    }
+  }
+};
+
+// Get current account (web only - native doesn't persist sessions)
+export const getMsalAccount = async () => {
+  if (Platform.OS !== 'web') {
+    // Native doesn't persist sessions with expo-auth-session
+    return null;
+  }
+  
+  if (!webMsalInstance) {
+    return null;
+  }
+  
+  const accounts = webMsalInstance.getAllAccounts();
+  return accounts.length > 0 ? accounts[0] : null;
+};
+
+// Export for backwards compatibility
+export const msalInstance = null;
+export { msalInitPromise };
+export { nativeRedirectUri, discovery };

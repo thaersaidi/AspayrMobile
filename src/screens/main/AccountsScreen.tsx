@@ -14,6 +14,8 @@ import { StackScreenProps } from '@react-navigation/stack';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { BottomTabParamList } from '../../types/navigation';
 import { Loading } from '../../components/common/Loading';
+import { ResponsiveContainer, ResponsiveGrid, AccountCard } from '../../components/common';
+import { useResponsive } from '../../hooks/useResponsive';
 import { userStorage } from '../../utils/storage';
 import { storageApi, bankingApi } from '../../api';
 import { formatCurrency, formatRelativeTime } from '../../utils/formatters';
@@ -53,6 +55,7 @@ const getTransactionAccountId = (transaction: any): string | undefined => {
 
 export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
+  const { isDesktop } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -278,6 +281,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
         }
         contentContainerStyle={styles.scrollContent}
       >
+        <ResponsiveContainer>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Accounts</Text>
@@ -302,72 +306,97 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
         {accountsByBank.length > 0 ? (
           <View style={styles.banksSection}>
             <Text style={styles.sectionTitle}>Connected Banks</Text>
-            {accountsByBank.map(({ bank, institution, accounts: bankAccounts }) => {
-              const logoUrl = getInstitutionLogo(institution);
-              const bankBalance = bankAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
-              
-              return (
-                <Surface key={bank.id} style={styles.bankCard} elevation={1}>
-                  {/* Bank Header */}
-                  <View style={styles.bankHeader}>
-                    <View style={styles.bankLogo}>
-                      {logoUrl ? (
-                        <Image
-                          source={{ uri: logoUrl }}
-                          style={styles.bankLogoImage}
-                          resizeMode="contain"
-                        />
-                      ) : (
-                        <View style={styles.bankLogoPlaceholder}>
-                          <Text style={styles.bankLogoInitials}>
-                            {(institution?.name || bank.institutionId).slice(0, 2).toUpperCase()}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.bankInfo}>
-                      <Text style={styles.bankName}>{institution?.name || bank.institutionId}</Text>
-                      <Text style={styles.bankMeta}>
-                        {bankAccounts.length} {bankAccounts.length === 1 ? 'account' : 'accounts'}
-                      </Text>
-                    </View>
-                    <Text style={styles.bankBalance}>{formatCurrency(bankBalance)}</Text>
-                  </View>
-                  
-                  {/* Bank Accounts */}
-                  {bankAccounts.map((account, index) => {
+
+            {isDesktop ? (
+              /* Desktop: Show individual account cards in a grid */
+              <ResponsiveGrid gap={16} maxColumns={2}>
+                {accountsByBank.flatMap(({ bank, institution, accounts: bankAccounts }) =>
+                  bankAccounts.map((account, index) => {
                     const isSelected = selectedAccountId === account.id;
-                    const txCount = transactionsByAccount[account.id] || 0;
                     return (
-                      <TouchableOpacity
-                        key={account.id || index}
-                        style={[styles.accountRow, isSelected && styles.accountRowSelected]}
-                        activeOpacity={0.8}
+                      <AccountCard
+                        key={account.id || `${bank.id}-${index}`}
+                        accountName={account.name || account.accountName || 'Account'}
+                        accountType={account.type || account.accountType || 'Current'}
+                        accountNumber={account.accountNumber}
+                        balance={account.balance || 0}
+                        currency="GBP"
+                        icon={account.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'}
                         onPress={() => handleAccountRowPress(account.id)}
-                      >
-                      <View style={styles.accountIcon}>
-                        <Icon
-                          name={account.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'}
-                          size={18}
-                          color={theme.colors.onSurfaceVariant}
-                        />
-                      </View>
-                      <View style={styles.accountInfo}>
-                        <Text style={styles.accountName} numberOfLines={1}>
-                          {account.name || account.accountName || 'Account'}
-                        </Text>
-                        <Text style={styles.accountNumber}>
-                          {account.accountNumber ? `•••• ${account.accountNumber.slice(-4)}` : account.type || 'Current'}
-                        </Text>
-                        <Text style={styles.accountTxCount}>{txCount} {txCount === 1 ? 'transaction' : 'transactions'}</Text>
-                      </View>
-                      <Text style={styles.accountBalance}>{formatCurrency(account.balance || 0)}</Text>
-                      </TouchableOpacity>
+                      />
                     );
-                  })}
-                </Surface>
-              );
-            })}
+                  })
+                )}
+              </ResponsiveGrid>
+            ) : (
+              /* Mobile: Keep grouped by bank layout */
+              accountsByBank.map(({ bank, institution, accounts: bankAccounts }) => {
+                const logoUrl = getInstitutionLogo(institution);
+                const bankBalance = bankAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+
+                return (
+                  <Surface key={bank.id} style={styles.bankCard} elevation={1}>
+                    {/* Bank Header */}
+                    <View style={styles.bankHeader}>
+                      <View style={styles.bankLogo}>
+                        {logoUrl ? (
+                          <Image
+                            source={{ uri: logoUrl }}
+                            style={styles.bankLogoImage}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <View style={styles.bankLogoPlaceholder}>
+                            <Text style={styles.bankLogoInitials}>
+                              {(institution?.name || bank.institutionId).slice(0, 2).toUpperCase()}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.bankInfo}>
+                        <Text style={styles.bankName}>{institution?.name || bank.institutionId}</Text>
+                        <Text style={styles.bankMeta}>
+                          {bankAccounts.length} {bankAccounts.length === 1 ? 'account' : 'accounts'}
+                        </Text>
+                      </View>
+                      <Text style={styles.bankBalance}>{formatCurrency(bankBalance)}</Text>
+                    </View>
+
+                    {/* Bank Accounts */}
+                    {bankAccounts.map((account, index) => {
+                      const isSelected = selectedAccountId === account.id;
+                      const txCount = transactionsByAccount[account.id] || 0;
+                      return (
+                        <TouchableOpacity
+                          key={account.id || index}
+                          style={[styles.accountRow, isSelected && styles.accountRowSelected]}
+                          activeOpacity={0.8}
+                          onPress={() => handleAccountRowPress(account.id)}
+                        >
+                        <View style={styles.accountIcon}>
+                          <Icon
+                            name={account.type === 'SAVINGS' ? 'piggy-bank' : 'wallet'}
+                            size={18}
+                            color={theme.colors.onSurfaceVariant}
+                          />
+                        </View>
+                        <View style={styles.accountInfo}>
+                          <Text style={styles.accountName} numberOfLines={1}>
+                            {account.name || account.accountName || 'Account'}
+                          </Text>
+                          <Text style={styles.accountNumber}>
+                            {account.accountNumber ? `•••• ${account.accountNumber.slice(-4)}` : account.type || 'Current'}
+                          </Text>
+                          <Text style={styles.accountTxCount}>{txCount} {txCount === 1 ? 'transaction' : 'transactions'}</Text>
+                        </View>
+                        <Text style={styles.accountBalance}>{formatCurrency(account.balance || 0)}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </Surface>
+                );
+              })
+            )}
           </View>
         ) : (
           <View style={styles.noBanksContainer}>
@@ -489,6 +518,7 @@ export const AccountsScreen: React.FC<Props> = ({ navigation }) => {
             )}
           </View>
         )}
+        </ResponsiveContainer>
       </ScrollView>
     </View>
   );

@@ -8,10 +8,15 @@ export { bankingApi } from './banking';
 export { storageApi } from './storage';
 export { aiApi } from './ai';
 
+import { authApi } from './auth';
+import { bankingApi } from './banking';
+import { storageApi } from './storage';
+import { aiApi } from './ai';
+
 // Re-export for convenience
 export const api = {
-  auth: require('./auth').authApi,
-  banking: require('./banking').bankingApi,
-  storage: require('./storage').storageApi,
-  ai: require('./ai').aiApi,
+  auth: authApi,
+  banking: bankingApi,
+  storage: storageApi,
+  ai: aiApi,
 };

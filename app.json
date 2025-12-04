@@ -23,6 +23,8 @@
       "bundler": "metro"
     },
     "scheme": "aspayr",
-    "plugins": []
+    "plugins": [
+      "expo-web-browser"
+    ]
   }
 }

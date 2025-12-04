@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Linking } from 'react-native';
+import { Linking, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { RootStackParamList } from '../types/navigation';
 import { AuthStack } from './AuthStack';
 import { MainStack } from './MainStack';
@@ -110,7 +110,6 @@ export const AppNavigator = () => {
 
   if (isLoading) {
     // Show splash screen or loading indicator
-    const { View, ActivityIndicator, StyleSheet } = require('react-native');
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#8B5CF6" />
@@ -131,7 +130,7 @@ export const AppNavigator = () => {
   );
 };
 
-const styles = require('react-native').StyleSheet.create({
+const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

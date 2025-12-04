@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomTabParamList } from '../types/navigation';
@@ -13,7 +14,6 @@ import { ProfileScreen } from '../screens/main/ProfileScreen';
 
 // Placeholder for remaining screens
 const PlaceholderScreen = ({ route }: any) => {
-  const { View, Text, StyleSheet } = require('react-native');
   return (
     <View style={styles.container}>
       <Text style={styles.text}>{route.name} Screen</Text>
@@ -22,7 +22,7 @@ const PlaceholderScreen = ({ route }: any) => {
   );
 };
 
-const styles = require('react-native').StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

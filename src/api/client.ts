@@ -1,20 +1,16 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { API_CONFIG } from '../utils/constants';
 import { API_CONFIG as BUNDLED_API_CONFIG } from '../config/msal.config';
 
-// Helper function to get config values (react-native-config only works on native)
+// Helper function to get config values from Expo environment variables
 const getConfigValue = (key: string): string | undefined => {
   if (Platform.OS === 'web') {
     return undefined;
   }
-  try {
-    // Only require react-native-config on native platforms
-    const Config = require('react-native-config').default;
-    return Config?.[key];
-  } catch {
-    return undefined;
-  }
+  // Use Expo's EXPO_PUBLIC_ environment variables (available via process.env)
+  return (process.env as any)[`EXPO_PUBLIC_${key}`];
 };
 
 class ApiClient {

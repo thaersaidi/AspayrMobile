@@ -12,6 +12,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { BottomTabParamList } from '../../types/navigation';
 import { Loading } from '../../components/common/Loading';
+import { ResponsiveContainer, ResponsiveGrid, BankCard } from '../../components/common';
+import { useResponsive } from '../../hooks/useResponsive';
 import { userStorage } from '../../utils/storage';
 import { storageApi, bankingApi } from '../../api';
 import { AuthRequest, Institution } from '../../types/banking';
@@ -22,6 +24,7 @@ type Props = NativeStackScreenProps<BottomTabParamList, 'Dashboard'>;
 export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
+  const { isDesktop, isWeb } = useResponsive();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -37,7 +40,7 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
       accountCount: number;
       balance: number;
       logoUrl: string | null;
-    }
+    }[]
   >([]);
   const [showOnboardingBanner, setShowOnboardingBanner] = useState(false);
 
@@ -151,6 +154,7 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        <ResponsiveContainer>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTextContainer}>
@@ -232,41 +236,19 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {banksOverview.slice(0, 3).map((bank) => (
-              <Surface
-                key={bank.id}
-                style={styles.accountCard}
-                elevation={0}
-              >
-                <TouchableOpacity
-                  style={styles.accountCardInner}
+            <ResponsiveGrid gap={16} maxColumns={isDesktop ? 2 : 1}>
+              {banksOverview.slice(0, isDesktop ? 4 : 3).map((bank) => (
+                <BankCard
+                  key={bank.id}
+                  bankName={bank.name}
+                  bankLogo={bank.logoUrl || undefined}
+                  accountCount={bank.accountCount}
+                  totalBalance={bank.balance}
+                  currency="GBP"
                   onPress={() => navigation.navigate('Accounts')}
-                >
-                  <View style={styles.accountIconContainer}>
-                    {bank.logoUrl ? (
-                      <Image
-                        source={{ uri: bank.logoUrl }}
-                        style={styles.bankLogoImage}
-                        resizeMode="contain"
-                      />
-                    ) : (
-                      <Text style={styles.accountEmoji}>🏦</Text>
-                    )}
-                  </View>
-                  <View style={styles.accountDetails}>
-                    <Text style={styles.accountName}>
-                      {bank.name}
-                    </Text>
-                    <Text style={styles.accountType}>
-                      {bank.accountCount} {bank.accountCount === 1 ? 'account' : 'accounts'}
-                    </Text>
-                  </View>
-                  <Text style={styles.accountBalance}>
-                    {formatCurrency(bank.balance || 0)}
-                  </Text>
-                </TouchableOpacity>
-              </Surface>
-            ))}
+                />
+              ))}
+            </ResponsiveGrid>
           </View>
         )}
 
@@ -288,15 +270,16 @@ export const DashboardScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           </Surface>
         )}
+        </ResponsiveContainer>
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <FAB
+      {/* Floating Action Button - Hide on web desktop */}
+      {!isDesktop && <FAB
         icon="plus"
         style={styles.fab}
         color="#FFFFFF"
         onPress={() => (navigation as any).getParent()?.navigate('LinkBank')}
-      />
+      />}
     </View>
   );
 };

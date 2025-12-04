@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { authApi } from '../../api';
-import { initializeMsal, getMsalInstance, loginRequest, isMsalAvailable } from '../../services/msalConfig';
+import { initializeMsal, getMsalInstance, msalLogin, isMsalAvailable } from '../../services/msalConfig';
 import { Logo } from '../../components/common/Logo';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
@@ -15,53 +15,100 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [msalReady, setMsalReady] = useState(false);
 
   React.useEffect(() => {
-    // Initialize MSAL on web platform
+    // Initialize MSAL on all platforms
     if (isMsalAvailable()) {
       initializeMsal()
-        .then(() => {
+        .then(async (msalInstance) => {
           setMsalReady(true);
+          
+          // On web, check if we're returning from a redirect
+          // The redirect response is handled during initialization
+          if (Platform.OS === 'web' && msalInstance) {
+            // Check if there's an authenticated account after redirect
+            const accounts = msalInstance.getAllAccounts();
+            
+            if (accounts && accounts.length > 0) {
+              const account = accounts[0];
+              const userEmail = account.username || '';
+              
+              console.log('[Auth] Microsoft login successful via redirect:', userEmail);
+              
+              try {
+                // Check if user exists in our system
+                const { exists, userUuid } = await authApi.checkUserExists(userEmail);
+
+                if (exists && userUuid) {
+                  // Existing user - go to PIN verification
+                  navigation.navigate('PINVerify', { email: userEmail });
+                } else {
+                  // New user - go to registration with pre-filled email
+                  navigation.navigate('Register', {
+                    email: userEmail,
+                    provider: 'microsoft',
+                    displayName: account.name || account.username,
+                  });
+                }
+              } catch (err: any) {
+                console.error('[Auth] Failed to process Microsoft login:', err);
+                alert(err.message || 'Failed to process login');
+              }
+            }
+          }
         })
         .catch((err) => {
           console.error('[Auth] MSAL initialization failed:', err);
         });
     }
-  }, []);
+  }, [navigation]);
 
   const handleMicrosoftLogin = async () => {
     if (!isMsalAvailable()) {
-      alert('Microsoft login is only available on web.');
-      return;
-    }
-
-    if (!msalReady) {
-      alert('Microsoft login is initializing. Please try again in a moment.');
+      alert('Microsoft login is not configured. Please set MSAL_CLIENT_ID.');
       return;
     }
 
     setLoading(true);
 
     try {
-      const msalInstance = getMsalInstance();
-      const loginResponse = await msalInstance.loginPopup(loginRequest);
-      const account = loginResponse.account;
-      const userEmail = account?.username || '';
-
-      console.log('[Auth] Microsoft login successful:', userEmail);
-
-      // Check if user exists in our system
-      const { exists, userUuid } = await authApi.checkUserExists(userEmail);
-
-      if (exists && userUuid) {
-        // Existing user - go to PIN verification
-        navigation.navigate('PINVerify', { email: userEmail });
-      } else {
-        // New user - go to registration with pre-filled email
-        navigation.navigate('Register', {
-          email: userEmail,
-          provider: 'microsoft',
-          displayName: account?.name || account?.username,
-        });
+      // Initialize MSAL if not ready yet
+      if (!msalReady) {
+        console.log('[Auth] MSAL not ready, initializing...');
+        await initializeMsal();
+        setMsalReady(true);
       }
+
+      // Use platform-agnostic login function
+      const result = await msalLogin();
+      
+      // On web, loginRedirect doesn't return a result (page redirects)
+      // On native, we get the result directly
+      if (Platform.OS !== 'web' && result) {
+        const userEmail = result.account?.username || '';
+        const displayName = result.account?.name || '';
+        
+        console.log('[Auth] Microsoft login successful:', userEmail);
+        
+        try {
+          // Check if user exists in our system
+          const { exists, userUuid } = await authApi.checkUserExists(userEmail);
+
+          if (exists && userUuid) {
+            // Existing user - go to PIN verification
+            navigation.navigate('PINVerify', { email: userEmail });
+          } else {
+            // New user - go to registration with pre-filled email
+            navigation.navigate('Register', {
+              email: userEmail,
+              provider: 'microsoft',
+              displayName: displayName,
+            });
+          }
+        } catch (err: any) {
+          console.error('[Auth] Failed to process Microsoft login:', err);
+          alert(err.message || 'Failed to process login');
+        }
+      }
+      // For web, the result is handled in useEffect after redirect
     } catch (err: any) {
       console.error('[Auth] Microsoft login failed:', err);
       alert(err.message || 'Microsoft login failed');

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackParamList } from '../types/navigation';
-import { BottomTabNavigator } from './BottomTabNavigator';
+import { ResponsiveNavigator } from './ResponsiveNavigator';
 import { OnboardingQuizScreen, GuidedTourScreen } from '../screens/onboarding';
 import { LinkBankScreen } from '../screens/banking';
 import { ChatScreen } from '../screens/chat';
@@ -59,7 +59,7 @@ export const MainStack = () => {
     <Stack.Navigator>
       <Stack.Screen
         name="Home"
-        component={BottomTabNavigator}
+        component={ResponsiveNavigator}
         options={{ headerShown: false }}
       />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
