@@ -208,18 +208,6 @@ export const ChartsScreen: React.FC<ChartsScreenProps> = ({
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text variant="titleMedium" style={styles.headerTitle}>
-          Visual Dashboards
-        </Text>
-        <Text
-          variant="bodySmall"
-          style={[styles.headerSubtitle, { color: theme.colors.onSurfaceVariant }]}
-        >
-          Interactive charts and analytics
-        </Text>
-      </View>
 
       {/* Accounts Charts */}
       {accountTypeData.length > 0 && (
@@ -234,30 +222,14 @@ export const ChartsScreen: React.FC<ChartsScreenProps> = ({
               <PieChart
                 data={accountTypeData}
                 width={CHART_WIDTH}
-                height={200}
+                height={220}
                 chartConfig={chartConfig}
                 accessor="value"
                 backgroundColor="transparent"
                 paddingLeft="15"
                 center={[10, 0]}
-                hasLegend={false}
+                hasLegend={true}
               />
-            </View>
-            {/* Legend */}
-            <View style={styles.legendContainer}>
-              {accountTypeData.map((item, index) => (
-                <View
-                  key={index}
-                  style={styles.legendItem}
-                >
-                  <View
-                    style={[styles.legendDot, { backgroundColor: item.color }]}
-                  />
-                  <Text style={styles.legendText}>
-                    {item.name} ({item.value})
-                  </Text>
-                </View>
-              ))}
             </View>
           </Surface>
 
@@ -267,30 +239,14 @@ export const ChartsScreen: React.FC<ChartsScreenProps> = ({
               <PieChart
                 data={accountCurrencyData}
                 width={CHART_WIDTH}
-                height={200}
+                height={220}
                 chartConfig={chartConfig}
                 accessor="value"
                 backgroundColor="transparent"
                 paddingLeft="15"
                 center={[10, 0]}
-                hasLegend={false}
+                hasLegend={true}
               />
-            </View>
-            {/* Legend */}
-            <View style={styles.legendContainer}>
-              {accountCurrencyData.map((item, index) => (
-                <View
-                  key={index}
-                  style={styles.legendItem}
-                >
-                  <View
-                    style={[styles.legendDot, { backgroundColor: item.color }]}
-                  />
-                  <Text style={styles.legendText}>
-                    {item.name} ({item.value})
-                  </Text>
-                </View>
-              ))}
             </View>
           </Surface>
         </>
