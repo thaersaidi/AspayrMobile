@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { AuthStackParamList } from '../types/navigation';
+import { pendingAuthAccount } from '../../App';
 
 // Import screens
 import { WelcomeScreen } from '../screens/auth/WelcomeScreen';
@@ -12,8 +13,13 @@ import { PINVerifyScreen } from '../screens/auth/PINVerifyScreen';
 const Stack = createStackNavigator<AuthStackParamList>();
 
 export const AuthStack = () => {
+  // If there's a pending auth (from OAuth redirect), start at Login screen
+  // so its useEffect can handle the redirect to PINVerify
+  const initialRouteName = pendingAuthAccount ? 'Login' : 'Welcome';
+
   return (
     <Stack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#F8FAFC' },

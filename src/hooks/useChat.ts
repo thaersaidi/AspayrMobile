@@ -62,6 +62,10 @@ export const useChat = () => {
   ) => {
     if (!question.trim()) return;
 
+    // Get user data to extract userId
+    const userData = await userStorage.getUser();
+    const userId = userData?.userUuid;
+
     // Create user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -102,8 +106,13 @@ export const useChat = () => {
 
         // Use the routed agent
         if (agentUsed === AI_AGENTS.ACCOUNT_INSIGHTS && options?.account) {
+          // Inject userId at the beginning of the message for agent-001
+          const questionWithUserId = userId
+            ? `userId=${userId} ${question}`
+            : question;
+
           const response = await aiApi.chatPlus({
-            question,
+            question: questionWithUserId,
             history,
             agentName: agentUsed,
             account: options.account,
@@ -123,9 +132,14 @@ export const useChat = () => {
         selectedAgent === AI_AGENTS.ACCOUNT_INSIGHTS &&
         options?.account
       ) {
+        // Inject userId at the beginning of the message for agent-001
+        const questionWithUserId = userId
+          ? `userId=${userId} ${question}`
+          : question;
+
         // Use chatPlus for context-aware agent
         const response = await aiApi.chatPlus({
-          question,
+          question: questionWithUserId,
           history,
           agentName: selectedAgent,
           account: options.account,

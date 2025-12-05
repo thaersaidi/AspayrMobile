@@ -1,17 +1,53 @@
 import { Platform } from 'react-native';
 import { MSAL_CONFIG } from '../config/msal.config';
-import Constants from 'expo-constants';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 import { createMsalInstance, isMsalSupported } from './msalWeb';
 
-// Complete auth session for native platforms
-if (Platform.OS !== 'web') {
-  WebBrowser.maybeCompleteAuthSession();
-}
+// Lazy load expo modules only when needed on native
+let AuthSession: any = null;
+let WebBrowser: any = null;
 
 // MSAL instance for web
 let webMsalInstance: any = null;
+
+// Cached native redirect URI
+let _nativeRedirectUri: string | null = null;
+
+// Helper to get native redirect URI lazily
+const getNativeRedirectUri = () => {
+  if (_nativeRedirectUri) return _nativeRedirectUri;
+  
+  if (Platform.OS === 'web') {
+    return '';
+  }
+  
+  try {
+    if (!AuthSession) {
+      AuthSession = require('expo-auth-session');
+    }
+    _nativeRedirectUri = AuthSession.makeRedirectUri({
+      scheme: 'aspayr',
+      path: 'auth',
+    });
+    return _nativeRedirectUri;
+  } catch (e) {
+    console.warn('[Auth] Failed to create native redirect URI:', e);
+    return '';
+  }
+};
+
+// Complete auth session for native platforms (called lazily)
+const completeAuthSession = () => {
+  if (Platform.OS !== 'web') {
+    try {
+      if (!WebBrowser) {
+        WebBrowser = require('expo-web-browser');
+      }
+      WebBrowser.maybeCompleteAuthSession();
+    } catch (e) {
+      console.warn('[Auth] Failed to complete auth session:', e);
+    }
+  }
+};
 
 // Helper function to safely get config from Expo environment variables
 const getNativeConfig = () => {
@@ -56,20 +92,14 @@ const resolvedAuthority =
     ? `https://login.microsoftonline.com/${tenantId}`
     : 'https://login.microsoftonline.com/consumers');
 
-// For Expo Auth Session - use the Expo proxy redirect URI
-const nativeRedirectUri = AuthSession.makeRedirectUri({
-  scheme: 'aspayr',
-  path: 'auth',
-});
-
 const webRedirectUri = Config.MSAL_REDIRECT_URI || (typeof window !== 'undefined' ? window.location.origin : '');
 
-// Debug logging
+// Debug logging (defer native redirect URI logging)
 console.log('[MSAL Config] Loaded configuration:', {
   platform: Platform.OS,
   clientId: clientId ? `${clientId.substring(0, 8)}...` : 'MISSING',
   authority: resolvedAuthority,
-  redirectUri: Platform.OS === 'web' ? webRedirectUri : nativeRedirectUri,
+  redirectUri: Platform.OS === 'web' ? webRedirectUri : '(native - lazy loaded)',
 });
 
 if (!clientId) {
@@ -83,11 +113,19 @@ const discovery = {
   revocationEndpoint: `${resolvedAuthority}/oauth2/v2.0/logout`,
 };
 
+// Get the redirect URI based on platform
+const getRedirectUri = () => {
+  if (Platform.OS === 'web') {
+    return webRedirectUri;
+  }
+  return getNativeRedirectUri();
+};
+
 export const msalConfig = {
   auth: {
     clientId: clientId || '',
     authority: resolvedAuthority,
-    redirectUri: Platform.OS === 'web' ? webRedirectUri : nativeRedirectUri,
+    redirectUri: webRedirectUri, // Web only uses this config
   },
   cache: {
     cacheLocation: 'localStorage',
@@ -102,9 +140,11 @@ export const loginRequest = {
 let msalInitPromise: Promise<void> | null = null;
 
 export const initializeMsal = async () => {
-  // For native platforms, no initialization needed - using expo-auth-session
+  // For native platforms, complete any pending auth session and prepare
   if (Platform.OS !== 'web') {
+    completeAuthSession();
     console.log('[Auth] Native MSAL (expo-auth-session) ready');
+    console.log('[Auth] Native redirect URI:', getNativeRedirectUri());
     return null;
   }
 
@@ -160,10 +200,18 @@ export const msalLogin = async (): Promise<{
   if (Platform.OS !== 'web') {
     // Native login using expo-auth-session
     try {
+      // Lazy load AuthSession
+      if (!AuthSession) {
+        AuthSession = require('expo-auth-session');
+      }
+      
+      const redirectUri = getNativeRedirectUri();
+      console.log('[Auth] Starting native auth with redirect URI:', redirectUri);
+      
       const request = new AuthSession.AuthRequest({
         clientId,
         scopes: loginRequest.scopes,
-        redirectUri: nativeRedirectUri,
+        redirectUri,
         responseType: AuthSession.ResponseType.Token,
         usePKCE: false, // Microsoft doesn't require PKCE for implicit flow
       });
@@ -259,4 +307,5 @@ export const getMsalAccount = async () => {
 // Export for backwards compatibility
 export const msalInstance = null;
 export { msalInitPromise };
-export { nativeRedirectUri, discovery };
+export { discovery };
+export { getRedirectUri, getNativeRedirectUri };

@@ -15,6 +15,8 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { userStorage, secureStorage } from '../../utils/storage';
 import { useThemeContext } from '../../contexts/ThemeContext';
+import { msalLogout } from '../../services/authService';
+import { clearPendingAuthAccount } from '../../../App';
 
 type Props = NativeStackScreenProps<BottomTabParamList, 'Profile'>;
 
@@ -59,16 +61,36 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
       await secureStorage.removeCredentials('aspayr_pin');
       await secureStorage.removeAccessToken();
 
-      console.log('[Logout] Logout complete. Redirecting to login...');
+      // Clear global pending auth account (from App.tsx)
+      clearPendingAuthAccount();
 
-      // For web, reload the page to trigger auth check
-      if (Platform.OS === 'web') {
+      // For web, clear session storage
+      if (Platform.OS === 'web' && typeof globalThis !== 'undefined') {
+        try {
+          (globalThis as any).sessionStorage?.removeItem('aspayr_pending_auth');
+          console.log('[Logout] Cleared sessionStorage');
+        } catch (e) {
+          console.error('[Logout] Failed to clear sessionStorage:', e);
+        }
+      }
+
+      // Clear MSAL session and storage (this will also trigger redirect)
+      console.log('[Logout] Clearing MSAL session...');
+      await msalLogout();
+
+      console.log('[Logout] Logout complete. Redirecting to Welcome page...');
+
+      // For web, redirect to root which will load AuthStack with Welcome screen
+      if (Platform.OS === 'web' && typeof globalThis !== 'undefined') {
+        // Give MSAL a moment to complete its logout, then redirect to Welcome
         setTimeout(() => {
-          window.location.reload();
-        }, 100);
+          const win = globalThis as any;
+          console.log('[Logout] Redirecting to Welcome page');
+          win.location.href = '/';
+        }, 500);
       } else {
         // For native, the AppNavigator interval will detect the logout
-        // within 1 second and redirect automatically
+        // within 1 second and redirect automatically to Welcome screen
       }
     } catch (error) {
       console.error('[Logout] Error during logout:', error);

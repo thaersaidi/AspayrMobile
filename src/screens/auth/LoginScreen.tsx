@@ -4,7 +4,8 @@ import { Text, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { authApi } from '../../api';
-import { initializeMsal, getMsalInstance, msalLogin, isMsalAvailable } from '../../services/msalConfig';
+import { initializeMsal, getMsalInstance, msalLogin, isMsalAvailable } from '../../services/authService';
+import { pendingAuthAccount } from '../../../App';
 import { Logo } from '../../components/common/Logo';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
@@ -15,45 +16,50 @@ export const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [msalReady, setMsalReady] = useState(false);
 
   React.useEffect(() => {
-    // Initialize MSAL on all platforms
+    console.log('[LoginScreen] useEffect running');
+    console.log('[LoginScreen] pendingAuthAccount:', pendingAuthAccount ? pendingAuthAccount.username : 'null');
+    
+    // On web, check if we have a pending auth account from redirect (set in App.tsx)
+    if (Platform.OS === 'web' && pendingAuthAccount) {
+      const account = pendingAuthAccount;
+      const userEmail = account.username || '';
+      
+      console.log('[Auth] Processing pending auth, email:', userEmail);
+      
+      // Process the auth result
+      (async () => {
+        try {
+          // Check if user exists in our system
+          const { exists, userUuid } = await authApi.checkUserExists(userEmail);
+
+          if (exists && userUuid) {
+            // Existing user - go to PIN verification
+            console.log('[LoginScreen] Navigating to PINVerify');
+            navigation.navigate('PINVerify', { email: userEmail });
+          } else {
+            // New user - go to registration with pre-filled email
+            console.log('[LoginScreen] Navigating to Register');
+            navigation.navigate('Register', {
+              email: userEmail,
+              provider: 'microsoft',
+              displayName: account.name || account.username,
+            });
+          }
+        } catch (err: any) {
+          console.error('[Auth] Failed to process Microsoft login:', err);
+          alert(err.message || 'Failed to process login');
+        }
+      })();
+      
+      return;
+    }
+    
+    // Initialize MSAL on all platforms (for native or if no pending result on web)
     if (isMsalAvailable()) {
       initializeMsal()
-        .then(async (msalInstance) => {
+        .then(() => {
+          console.log('[LoginScreen] MSAL initialized');
           setMsalReady(true);
-          
-          // On web, check if we're returning from a redirect
-          // The redirect response is handled during initialization
-          if (Platform.OS === 'web' && msalInstance) {
-            // Check if there's an authenticated account after redirect
-            const accounts = msalInstance.getAllAccounts();
-            
-            if (accounts && accounts.length > 0) {
-              const account = accounts[0];
-              const userEmail = account.username || '';
-              
-              console.log('[Auth] Microsoft login successful via redirect:', userEmail);
-              
-              try {
-                // Check if user exists in our system
-                const { exists, userUuid } = await authApi.checkUserExists(userEmail);
-
-                if (exists && userUuid) {
-                  // Existing user - go to PIN verification
-                  navigation.navigate('PINVerify', { email: userEmail });
-                } else {
-                  // New user - go to registration with pre-filled email
-                  navigation.navigate('Register', {
-                    email: userEmail,
-                    provider: 'microsoft',
-                    displayName: account.name || account.username,
-                  });
-                }
-              } catch (err: any) {
-                console.error('[Auth] Failed to process Microsoft login:', err);
-                alert(err.message || 'Failed to process login');
-              }
-            }
-          }
         })
         .catch((err) => {
           console.error('[Auth] MSAL initialization failed:', err);
